@@ -54,7 +54,7 @@ $_paths = `
     "$Env:LOCALAPPDATA\Programs\Python\Python38-32\Scripts", `
     "C:\Portable Apps\ILSpy"
 
-$_paths | % Add-DirectoryToPath 
+$_paths | Add-DirectoryToPath 
 
 $Env:GNUPGHOME = "$Env:APPDATA\GnuPG"
 

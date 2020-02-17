@@ -20,10 +20,6 @@ Function Add-DirectoryToPath {
             }
         }
 
-        $path = $path -replace "^(.*);+$", "`$1"
-        $path = $path -replace "^(.*)\\$", "`$1"
-        $path = (Resolve-Path -Path $path).Path
-
         Function Array-Contains {
             param(
                 [string[]] $array,
@@ -39,6 +35,10 @@ Function Add-DirectoryToPath {
     }
 
     PROCESS {
+
+        $path = $path -replace "^(.*);+$", "`$1"
+        $path = $path -replace "^(.*)\\$", "`$1"
+        $path = (Resolve-Path -Path $path).Path
 
         $newPath = $path.ToLowerInvariant()
         if (-not (Array-Contains -Array $paths -Item $newPath)) {
