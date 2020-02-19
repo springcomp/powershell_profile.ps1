@@ -39,9 +39,13 @@ Function Add-DirectoryToPath {
         $path = $path -replace "^(.*);+$", "`$1"
         $path = $path -replace "^(.*)\\$", "`$1"
         $path = (Resolve-Path -Path $path).Path
+        $path = $path.Trim()
 
         $newPath = $path.ToLowerInvariant()
         if (-not (Array-Contains -Array $paths -Item $newPath)) {
+            if ($whatIf.IsPresent){
+                Write-Host $path
+            }
             $paths += $path
         }
     }
@@ -50,7 +54,8 @@ Function Add-DirectoryToPath {
 
         ## re-create PATH environment variable
 
-        $envPATH = "$env:PATH;$($path)"
+        $joinedPaths = [string]::Join(";", $paths)
+        $envPATH = "$($env:PATH)$($joinedpaths)"
 
         if ($whatIf.IsPresent) {
             Write-Output $envPATH
