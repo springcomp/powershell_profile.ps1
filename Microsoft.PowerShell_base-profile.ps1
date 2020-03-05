@@ -38,15 +38,22 @@ Function Add-DirectoryToPath {
 
         $path = $path -replace "^(.*);+$", "`$1"
         $path = $path -replace "^(.*)\\$", "`$1"
-        $path = (Resolve-Path -Path $path).Path
-        $path = $path.Trim()
+        if (Test-Path -Path $path) {
+            $path = (Resolve-Path -Path $path).Path
+            $path = $path.Trim()
 
-        $newPath = $path.ToLowerInvariant()
-        if (-not (Array-Contains -Array $paths -Item $newPath)) {
-            if ($whatIf.IsPresent){
-                Write-Host $path
+            $newPath = $path.ToLowerInvariant()
+            if (-not (Array-Contains -Array $paths -Item $newPath)) {
+                if ($whatIf.IsPresent) {
+                    Write-Host $path
+                }
+                $paths += $path
             }
-            $paths += $path
+        }
+        else {
+
+            Write-Host "Invalid entry in `$Env:PATH: ``$path``" -ForegroundColor Yellow
+
         }
     }
 
