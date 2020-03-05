@@ -1,4 +1,4 @@
-Function gb64 {
+Function b64 {
     [cmdletBinding()]
     param(
         [Parameter(Position = 0)]
@@ -9,7 +9,7 @@ Function gb64 {
         Write-Output $base64
     }
 }
-Function gub64 {
+Function ub64 {
     [cmdletBinding()]
     param(
         [Parameter(Position = 0)]
