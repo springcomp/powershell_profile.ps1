@@ -13,12 +13,17 @@ Function Add-DirectoryToPath {
 
         ## normalize paths
 
+        $count = 0
+
         $paths = @()
         $env:PATH.Split(";") | ForEach-Object {
             if ($_.Length -gt 0) {
+                $count = $count + 1
                 $paths += $_.ToLowerInvariant()
             }
         }
+
+        ## Write-Host "Currently $($count) entries in `$env:PATH" -ForegroundColor Green
 
         Function Array-Contains {
             param(
@@ -48,6 +53,8 @@ Function Add-DirectoryToPath {
                     Write-Host $path
                 }
                 $paths += $path
+
+                ## Write-Host "Adding $($path) to `$env:PATH" -ForegroundColor Green
             }
         }
         else {
@@ -62,7 +69,7 @@ Function Add-DirectoryToPath {
         ## re-create PATH environment variable
 
         $joinedPaths = [string]::Join(";", $paths)
-        $envPATH = "$($env:PATH)$($joinedpaths)"
+        $envPATH = "$($joinedpaths)"
 
         if ($whatIf.IsPresent) {
             Write-Output $envPATH
