@@ -43,6 +43,7 @@ Load-Profile "base"
 Load-Profile "b64"
 Load-Profile "dotnet"
 Load-Profile "git"
+Load-Profile "vim"
 
 ## Setup PATH environment variable
 
@@ -56,8 +57,6 @@ $_paths = `
 
 $_paths | Add-DirectoryToPath 
 
-$Env:GNUPGHOME = "$Env:APPDATA\GnuPG"
-
 ## SECURITY - SENSITIVE DATA
 
 Load-Profile "secret"
@@ -68,6 +67,7 @@ Function c {
     param([string] $path = ".")
     . code $path
 }
+Function ccv { Get-CurrentVersion | clipp }
 Function cguid { [Guid]::NewGuid().guid | clipp }
 Function cwd { $PWD.Path | clipp }
 Function ewd { param([string] $path = $PWD.Path) explorer $path }
@@ -81,3 +81,7 @@ Function Get-CurrentVersion {
     $rev = [Math]::Floor(($now - $now.Date).TotalSeconds / 2)
     Write-Output "1.0.$($build).$($rev)"
 }
+Set-Alias -Name gcv -Value Get-CurrentVersion
+Function izarc { & 'C:\Portable Apps\IZarc2Go\IZArc2Go.exe' }
+Function servicebus { & 'C:\Portable Apps\ServiceBus Explorer\ServiceBusExplorer.exe' }
+Set-Alias -Name sbex -Value servicebus
