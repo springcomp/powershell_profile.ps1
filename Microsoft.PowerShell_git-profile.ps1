@@ -37,6 +37,22 @@ Function g { git status }
 Function lol { git log --oneline --decorate --graph }
 Function pull { git fetch -p; git merge --ff-only }
 Function push { git push $args }
+Function release-start {
+    param(
+        [string]$release
+    )
+    git flow release start $release
+}
+Function release-publish {
+    $branch = $(git rev-parse --abbrev-ref HEAD)
+    $release = $branch.Replace("release/", "")
+    git flow release publish $release
+}
+Function release-finish {
+    $branch = $(git rev-parse --abbrev-ref HEAD)
+    $release = $branch.Replace("release/", "")
+    git flow release finish $release
+}
 Function reset {
     [CmdletBinding()]
     param(
