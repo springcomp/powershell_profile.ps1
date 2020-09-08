@@ -70,6 +70,7 @@ Function c {
 Function ccv { Get-CurrentVersion | clipp }
 Function cguid { [Guid]::NewGuid().guid | clipp }
 Function cwd { $PWD.Path | clipp }
+Function csp { code (split-path $args) }
 Function ewd { param([string] $path = $PWD.Path) explorer $path }
 Set-Alias -Name e -Value ewd
 Function filezilla { & 'C:\Portable Apps\FileZilla\FileZillaPortable.exe' }
