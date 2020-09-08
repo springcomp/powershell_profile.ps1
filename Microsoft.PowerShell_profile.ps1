@@ -84,5 +84,7 @@ Function Get-CurrentVersion {
 }
 Set-Alias -Name gcv -Value Get-CurrentVersion
 Function izarc { & 'C:\Portable Apps\IZarc2Go\IZArc2Go.exe' }
+Function keepass { & 'C:\Portable Apps\KeePass\KeePass.exe' }
+Set-Alias -Name kp -Value keepass
 Function servicebus { & 'C:\Portable Apps\ServiceBus Explorer\ServiceBusExplorer.exe' }
 Set-Alias -Name sbex -Value servicebus
