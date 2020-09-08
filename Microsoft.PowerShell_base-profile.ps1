@@ -83,14 +83,15 @@ Function Add-DirectoryToPath {
 Function Search-Item {
     [CmdletBinding()]
     param(
-        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
-        [Alias("FullName")]
-        [Alias("PSPath")]
-        [string]$path = $PWD,
-
         [Parameter(Position = 0)]
         [Alias("pattern")]
-        [string]$filter = "*.*"
+        [string]$filter = "*.*",
+
+        [Parameter(Position = 1, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Alias("FullName")]
+        [Alias("PSPath")]
+        [string]$path = $PWD
+
     )
 
     PROCESS {
