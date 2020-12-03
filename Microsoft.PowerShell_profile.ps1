@@ -11,7 +11,7 @@ Function Load-Profile {
             param([string]$path)
 
             $content = Get-Content -Path $path -Raw
-            $content = $content -replace "[Ff]unction\ +([A-Za-z]+)", 'Function global:$1'
+            $content = $content -replace "(?<!\-)[Ff]unction\ +([A-Za-z]+)", 'Function global:$1'
             $content = $content -replace "[Ss][Ee][Tt]\-[Aa][Ll][Ii][Aa][Ss]\ +(.*)", 'Set-Alias -Scope Global $1'
 
             Write-Output $content
