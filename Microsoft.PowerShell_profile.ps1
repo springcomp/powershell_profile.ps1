@@ -63,6 +63,8 @@ Load-Profile "secret"
 
 ## SENSITIVE DATA
 
+## USEFUL FUNCTIONS
+
 Function c {
     param([string] $path = ".")
     . code $path
@@ -71,7 +73,14 @@ Function ccv { Get-CurrentVersion | clipp }
 Function cguid { [Guid]::NewGuid().guid | clipp }
 Function cwd { $PWD.Path | clipp }
 Function csp { code (split-path $args) }
-Function ewd { param([string] $path = $PWD.Path) explorer $path }
+Function esp { explorer (split-path $args) }
+Function ewd {
+    param([string] $path = $PWD.Path)
+    if ($path.EndsWith("\")) {
+        $path = $path.Substring(0, $path.Length - 1)
+    }
+    explorer $path 
+}
 Set-Alias -Name e -Value ewd
 Function filezilla { & 'C:\Portable Apps\FileZilla\FileZillaPortable.exe' }
 Set-Alias -Name zilla -Value filezilla
@@ -88,3 +97,10 @@ Function keepass { & 'C:\Portable Apps\KeePass\KeePass.exe' }
 Set-Alias -Name kp -Value keepass
 Function servicebus { & 'C:\Portable Apps\ServiceBus Explorer\ServiceBusExplorer.exe' }
 Set-Alias -Name sbex -Value servicebus
+
+Function Upgrade-PowerShell {
+    Remove-Item -Path "$Env:LOCALAPPDATA\Microsoft\powershell-daily" -Recurse -Force -EA SilentlyContinue
+    Copy-Item -Path "$Env:LOCALAPPDATA\Microsoft\powershell-daily.old\assets" -Destination "$Env:LOCALAPPDATA\Microsoft\powershell-daily\assets" -Recurse
+    Invoke-Expression "& { $(Invoke-RestMethod 'https://aka.ms/install-powershell.ps1') } -daily"
+}
+Set-Alias -Name update -Value Upgrade-PowerShell

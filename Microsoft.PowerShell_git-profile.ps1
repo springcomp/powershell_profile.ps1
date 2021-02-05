@@ -1,6 +1,7 @@
 Add-DirectoryToPath -Path "C:\Program Files\Git\usr\bin\"
 
 Function add { git add $args }
+Function amend { git commit --amend $args }
 Function clone { git clone --recurse-submodules $args }
 Function commit { git commit $args }
 Function feature {
