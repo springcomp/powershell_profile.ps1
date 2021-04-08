@@ -1,9 +1,35 @@
- "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE", `
- "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin", `
- "C:\Portable Apps\IlSpy\IlSpy.exe" | Add-DirectoryToPath
+[CmdletBinding()]
+param( [switch] $completions )
+
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE", `
+    "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin", `
+    "C:\Portable Apps\IlSpy" | Add-DirectoryToPath
+
+if ($completions.IsPresent) {
+    # PowerShell parameter completion shim for the dotnet CLI 
+    Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
+        param($commandName, $wordToComplete, $cursorPosition)
+        dotnet complete --position $cursorPosition "$wordToComplete" | ForEach-Object {
+            [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+        }
+    }
+}
 
 Function me { Set-Location D:\Projects\springcomp }
 Function pro { Set-Location D:\Projects }
 Function run-tests { Get-ChildItem -Path $PATH -Recurse -Filter *Tests.csproj | % { dotnet test $_.FullName } }
+Function vs {
+    $solution = Get-ChildItem -Path $PWD -Filter "*.sln" | Select-Object -First 1
+    Write-Host $solution
 
-Function vs { & devenv.exe $args }
+    if ($solution) { & devenv.exe $solution.FullName }
+    else {
+        $project = Get-ChildItem -Path $PWD -Filter "*.csproj" | Select-Object -First 1
+        Write-Host $project
+        if ($project) { & devenv.exe $project.FullName }
+        else {
+            Write-Host "Launching Visual Studio"
+            & devenv.exe $args 
+        }
+    }
+}
