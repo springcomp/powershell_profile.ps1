@@ -6,6 +6,7 @@ Function Add-DirectoryToPath {
         [Alias("FullName")]
         [string] $path,
 
+        [switch] $prepend,
         [switch] $whatIf
     )
 
@@ -23,7 +24,7 @@ Function Add-DirectoryToPath {
             }
         }
 
-        ## Write-Host "Currently $($count) entries in `$env:PATH" -ForegroundColor Green
+        Write-Verbose "Currently $($count) entries in `$env:PATH"
 
         Function Array-Contains {
             param(
@@ -41,10 +42,12 @@ Function Add-DirectoryToPath {
 
     PROCESS {
 
-        $path = $path -replace "^(.*);+$", "`$1"
-        $path = $path -replace "^(.*)\\$", "`$1"
-        if (Test-Path -Path $path) {
-            $path = (Resolve-Path -Path $path).Path
+        ## Using [IO.Directory]::Exists() instead of Test-Path for performance purposes
+
+        ##$path = $path -replace "^(.*);+$", "`$1"
+        ##$path = $path -replace "^(.*)\\$", "`$1"
+        if ([IO.Directory]::Exists($path)) {
+            #$path = (Resolve-Path -Path $path).Path
             $path = $path.Trim()
 
             $newPath = $path.ToLowerInvariant()
@@ -52,9 +55,11 @@ Function Add-DirectoryToPath {
                 if ($whatIf.IsPresent) {
                     Write-Host $path
                 }
-                $paths += $path
 
-                ## Write-Host "Adding $($path) to `$env:PATH" -ForegroundColor Green
+                if ($prepend.IsPresent) { $paths = , $path + $paths }
+                else { $paths += $path }
+
+                Write-Verbose "Adding $($path) to `$env:PATH"
             }
         }
         else {
@@ -69,15 +74,15 @@ Function Add-DirectoryToPath {
         ## re-create PATH environment variable
 
         $joinedPaths = [string]::Join(";", $paths)
-        $envPATH = "$($joinedpaths)"
 
         if ($whatIf.IsPresent) {
-            Write-Output $envPATH
+            Write-Output $joinedPaths
         }
         else {
-            $env:PATH = $envPATH
+            $env:PATH = $joinedPaths
         }
     }
+
 }
 
 Function Search-Item {

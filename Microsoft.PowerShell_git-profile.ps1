@@ -1,6 +1,30 @@
-Add-DirectoryToPath -Path "C:\Program Files\Git\usr\bin\"
+[CmdletBinding()]
+param( [switch]$completions )
+
+Add-DirectoryToPath -Path "D:\Users\mlabelle\AppData\Local\Programs\Git\usr\bin"
+
+if ($completions.IsPresent) {
+
+    Write-Host "Loading CLI completions for git." -ForegroundColor Cyan
+
+    ## CLI completions require Git bash
+
+    "d:\users\mlabelle\appdata\local\programs\git\bin" | Add-DirectoryToPath -Prepend
+
+    ## Install-Module -Name PSBashCompletions -Scope CurrentUser
+    ## $completionsPath = Join-Path (Split-Path -Parent $PROFILE) Completions
+    ## $completions = "https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash"
+    ## Invoke-WebRequest -Method Get $completions -OutFile "$completionsPath/git.sh"
+
+    $completionsPath = Join-Path (Split-Path -Parent $PROFILE) Completions
+    if (Test-Path $completionsPath) {
+        Import-Module PSBashCompletions
+        Register-BashArgumentCompleter git "$completionsPath/git.sh"
+    }
+}
 
 Function add { git add $args }
+Function amend { git commit --amend $args }
 Function clone { git clone --recurse-submodules $args }
 Function commit { git commit $args }
 Function feature {
@@ -9,7 +33,9 @@ Function feature {
     )
 
     if ($feature.Length -gt 0) {
-        feature-start -feature $feature
+        if ($feature -eq "publish") { & feature-publish }
+        if ($feature -eq "finish") { & feature-finish }
+        else { feature-start -feature $feature }
     }
     else {
         $branch = $(git rev-parse --abbrev-ref HEAD)
@@ -60,7 +86,7 @@ Function reset {
         [Alias("FullName")]
         [string]$path
     )
-    PROCESS{
+    PROCESS {
         git checkout HEAD -- $path
     }
 }

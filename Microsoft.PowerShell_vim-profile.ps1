@@ -1,6 +1,8 @@
-Add-DirectoryToPath -Path "C:\Program Files (x86)\Vim\vim81"
+$__VIM_HOME="D:\Users\mlabelle\AppData\Local\Programs\Git\usr\bin"
+
+Add-DirectoryToPath -Path $__VIM_HOME
 
 function vim {
-    . "C:\Program Files (x86)\Vim\vim81\vim.exe" $args
+    . "$($__VIM_HOME)\vim.exe" $args
 }
 Set-Alias -Name vi -Value vim
