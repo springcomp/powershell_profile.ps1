@@ -29,3 +29,24 @@ if ($completions.IsPresent) {
         Register-BashArgumentCompleter helm "$completionsPath/helm.sh"
     }
 }
+
+Function tf-init {
+    terraform init `
+        -backend-config $PWD\tfbackend.tfvars
+        $args
+}
+Function tf-plan {
+    $varFile = Get-ChildItem -Path $PWD -Filter *.tfvars |? { $_.Name -ne "tfbackend.tfvars" }
+    terraform plan `
+        -var-file "$PWD\$($varfile.Name)" `
+        -var validate_datadog=false `
+        $args
+}
+Function tf-apply {
+    $varFile = Get-ChildItem -Path $PWD -Filter *.tfvars |? { $_.Name -ne "tfbackend.tfvars" }
+    terraform apply `
+        -var-file "$PWD\$($varfile.Name)" `
+        -var validate_datadog=false `
+        -auto-approve `
+        $args
+}

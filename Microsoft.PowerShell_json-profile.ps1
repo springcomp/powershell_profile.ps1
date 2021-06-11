@@ -1,3 +1,5 @@
+Function jq { & j"q-win64.exe" $args }
+
 Function Load-Json {
     param(
         [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]

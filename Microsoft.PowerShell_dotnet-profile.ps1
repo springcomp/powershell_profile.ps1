@@ -19,7 +19,18 @@ Function me { Set-Location D:\Projects\springcomp }
 Function pro { Set-Location D:\Projects }
 Function run-tests { Get-ChildItem -Path $PATH -Recurse -Filter *Tests.csproj | % { dotnet test $_.FullName } }
 Function vs {
-    $solution = Get-ChildItem -Path $PWD -Filter "*.sln" | Select-Object -First 1
+    [CmdletBinding()]
+    param(
+        [Alias("Solution")]
+        [string]$path = $null
+    )
+
+    if (-not $path) {
+        $solution = Get-ChildItem -Path $PWD -Filter "*.sln" | Select-Object -First 1
+    } else {
+        $solution = Get-Item -Path $path
+    }
+
     Write-Host $solution
 
     if ($solution) { & devenv.exe $solution.FullName }

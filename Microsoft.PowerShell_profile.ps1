@@ -1,3 +1,9 @@
+$___profile = Join-Path -Path (Split-Path -Path $profile -Parent) -ChildPath "profile.ps1"
+if (Test-Path $___profile) { 
+    Write-Host "Removing default profile file." -ForegroundColor Yellow
+    Remove-Item $___profile -Force
+}
+
 ## Well-known profiles script
 Function Get-Profile {
     [CmdletBinding()]
@@ -138,6 +144,7 @@ Load-Profile "vim"
 ## Setup PATH environment variable
 
 $_paths = `
+    "C:\Portable Apps", `
     "D:\Projects\springcomp\clip\src\clip\bin\Debug"
 
 $_paths | Add-DirectoryToPath 
@@ -179,7 +186,7 @@ Set-Alias -Name zilla -Value filezilla
 Function Get-CurrentVersion {
     $epoch = [DateTime]::Parse("2000-01-01")
     $now = Get-Date
-    $build = [Math]::Floor(($now - $epoch).TotalDays)
+    $build = [Convert]::ToInt32(($now - $epoch).TotalDays)
     $rev = [Math]::Floor(($now - $now.Date).TotalSeconds / 2)
     Write-Output "1.0.$($build).$($rev)"
 }

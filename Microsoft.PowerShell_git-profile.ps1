@@ -63,6 +63,20 @@ Function g { git status }
 Function lol { git log --oneline --decorate --graph }
 Function pull { git fetch -p; git merge --ff-only }
 Function push { git push $args }
+
+Function pushup {
+    param(
+        [string]$remote = "origin",
+        [switch]$force
+    )
+    $branch = $(git rev-parse --abbrev-ref HEAD)
+    if ($force.IsPresent) {
+        git push --set-upstream $remote $branch --force
+    }
+    else {
+        git push --set-upstream $remote $branch
+    }
+}
 Function release-start {
     param(
         [string]$release
