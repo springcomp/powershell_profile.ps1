@@ -83,6 +83,7 @@ if ($importerror.Count -eq 0) {
             Az.TrafficManager, `
             Az.Websites `
         -ErrorAction SilentlyContinue `
+        -Scope CurrentUser
         ; 
 }
 #End Azure PowerShell alias import
