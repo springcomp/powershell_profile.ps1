@@ -50,3 +50,11 @@ Function tf-apply {
         -auto-approve `
         $args
 }
+
+Function tf-import {
+    $varFile = Get-ChildItem -Path $PWD -Filter *.tfvars |? { $_.Name -ne "tfbackend.tfvars" }
+    terraform import `
+        -var-file "$PWD\$($varfile.Name)" `
+        -var validate_datadog=false `
+        $args
+}
