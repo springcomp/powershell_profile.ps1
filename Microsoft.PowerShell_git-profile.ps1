@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param( [switch]$completions )
 
-Add-DirectoryToPath -Path "D:\Users\mlabelle\AppData\Local\Programs\Git\usr\bin"
+$__GIT_HOME="C:\Program Files\Git\usr\bin"
 
 if ($completions.IsPresent) {
 
@@ -9,7 +9,7 @@ if ($completions.IsPresent) {
 
     ## CLI completions require Git bash
 
-    "d:\users\mlabelle\appdata\local\programs\git\bin" | Add-DirectoryToPath -Prepend
+    $__GIT_HOME | Add-DirectoryToPath -Prepend
 
     ## Install-Module -Name PSBashCompletions -Scope CurrentUser
     ## $completionsPath = Join-Path (Split-Path -Parent $PROFILE) Completions
@@ -22,6 +22,8 @@ if ($completions.IsPresent) {
         Register-BashArgumentCompleter git "$completionsPath/git.sh"
     }
 }
+
+$__GIT_HOME | Add-DirectoryToPath
 
 Function add { git add $args }
 Function amend { git commit --amend $args }
@@ -63,6 +65,20 @@ Function g { git status }
 Function lol { git log --oneline --decorate --graph }
 Function pull { git fetch -p; git merge --ff-only }
 Function push { git push $args }
+
+Function pushup {
+    param(
+        [string]$remote = "origin",
+        [switch]$force
+    )
+    $branch = $(git rev-parse --abbrev-ref HEAD)
+    if ($force.IsPresent) {
+        git push --set-upstream $remote $branch --force
+    }
+    else {
+        git push --set-upstream $remote $branch
+    }
+}
 Function release-start {
     param(
         [string]$release

@@ -1,3 +1,4 @@
+
 Invoke-Expression `
   -Command (
     & "C:\Portable Apps\oh-my-posh\oh-my-posh.exe" `
@@ -5,3 +6,5 @@ Invoke-Expression `
       --shell pwsh `
       --config "C:\Portable Apps\oh-my-posh\.poshthemes\oh-my-posh.json"
     )
+
+Import-Module -Name Terminal-Icons

@@ -1,4 +1,18 @@
 ## Well-known profiles script
+
+Function Get-DefaultProfile {
+    $___profile = Join-Path -Path (Split-Path -Path $profile -Parent) -ChildPath "profile.ps1"
+    Write-Output $___profile
+}
+
+Function Remove-DefaultProfile {
+    $___profile = Get-DefaultProfile
+    if (Test-Path $___profile) { 
+        Write-Host "Removing default profile file." -ForegroundColor Yellow
+        Remove-Item $___profile -Force
+    }
+}
+
 Function Get-Profile {
     [CmdletBinding()]
     param(
@@ -138,6 +152,7 @@ Load-Profile "vim"
 ## Setup PATH environment variable
 
 $_paths = `
+    "C:\Portable Apps", `
     "D:\Projects\springcomp\clip\src\clip\bin\Debug"
 
 $_paths | Add-DirectoryToPath 

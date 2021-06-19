@@ -1,4 +1,4 @@
-$__VIM_HOME="D:\Users\mlabelle\AppData\Local\Programs\Git\usr\bin"
+$__VIM_HOME="C:\Program Files\Git\usr\bin"
 
 Add-DirectoryToPath -Path $__VIM_HOME
 
