@@ -228,20 +228,13 @@ Function Load-Profile {
 
 Set-Alias -Name lp -Value Load-Profile
 
-## PowerShell Modules
+## Load required profiles
 
-$_module_paths = `
-    "$Env:LOCALAPPDATA\Microsoft\Powershell-modules", `
-    "$Env:LOCALAPPDATA\Microsoft\PowerShell-daily\Modules", `
-    "C:\Program Files\PowerShell\Modules", `
-    "C:\Program Files\WindowsPowerShell\Modules", `
-    "C:\Windows\system32\WindowsPowerShell\v1.0\Modules"
-
-$_module_paths | Add-DirectoryToPath -Clear -Force -Variable "PSModulePath"
+Load-Profile "modules"
+Load-Profile "path"
 
 ## Load useful profiles
 
-##Load-Profile "azure"
 Load-Profile "b64"
 Load-Profile "dotnet"
 Load-Profile "docker"
@@ -253,18 +246,8 @@ Load-Profile "psreadline"
 Load-Profile "utils"
 Load-Profile "vim"
 
-## Setup PATH environment variable
-
-$_paths = `
-    "C:\Portable Apps", `
-    "C:\Projects\springcomp\clip\src\clip\bin\Release"
-
-$_paths | Add-DirectoryToPath 
-
 ## SECURITY - SENSITIVE DATA
 
 #Load-Profile "secret"
 
 ## SENSITIVE DATA
-
-## USEFUL FUNCTIONS
