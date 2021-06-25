@@ -82,7 +82,8 @@ Function Add-DirectoryToPath {
 
         ## re-create PATH environment variable
 
-        $joinedPaths = [string]::Join(";", $paths)
+        $separator = [IO.Path]::PathSeparator
+        $joinedPaths = [string]::Join($separator, $paths)
 
         if ($whatIf.IsPresent) {
             Write-Output $joinedPaths
