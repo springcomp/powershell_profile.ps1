@@ -15,8 +15,8 @@ if ($completions.IsPresent) {
     }
 }
 
-Function me { Set-Location D:\Projects\springcomp }
-Function pro { Set-Location D:\Projects }
+Function me { Set-Location C:\Projects\springcomp }
+Function pro { Set-Location C:\Projects }
 Function run-tests { Get-ChildItem -Path $PATH -Recurse -Filter *Tests.csproj | % { dotnet test $_.FullName } }
 Function vs {
     [CmdletBinding()]

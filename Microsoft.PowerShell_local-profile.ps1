@@ -1,9 +1,9 @@
 Function text {
     "`"This is a text`nthat contains multiple lines for tests purposes.`n It also includes spaces at`n the beginning of lines`n to illustrate common pattern.`"" | clipp
 }
-Function p { Set-Location "d:\Projects\springcomp\PSReadLine\PSReadLine" }
+Function p { Set-Location "c:\Projects\springcomp\PSReadLine\PSReadLine" }
 Function reg {
-    $Env:PSModulePath = "$($Env:PSModulePath);D:\Projects\springcomp\PSReadLine\PSReadLine\bin\Debug"
+    $Env:PSModulePath = "$($Env:PSModulePath);C:\Projects\springcomp\PSReadLine\PSReadLine\bin\Debug"
     Import-Module PSReadLine3
     Remove-Module PSReadLine
     Set-PSReadLine3Option -EditMode Vi
@@ -22,5 +22,5 @@ Function pwin {
 }
 
 function apim {
-    start D:\Projects\springcomp\ahk\apim-snow.ahk
+    start "$Env:USERPROFILE\Professional\CHANEL IPaaS Platform - Documentation\Starter kits\Technical Design\API Management\apim-snow.ahk"
 }

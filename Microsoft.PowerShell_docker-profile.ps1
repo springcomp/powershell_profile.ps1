@@ -2,8 +2,8 @@
 param( [switch]$completions )
 
 "C:\Portable Apps\Terraform", `
-"C:\Portable Apps\Helm" `
-    | Add-DirectoryToPath
+    "C:\Portable Apps\Helm" `
+| Add-DirectoryToPath
 
 if ($completions.IsPresent) {
 
@@ -11,7 +11,7 @@ if ($completions.IsPresent) {
 
     ## CLI completions require Git bash
 
-    "d:\users\mlabelle\appdata\local\programs\git\bin" | Add-DirectoryToPath -Prepend
+    "c:\users\mlabelle\appdata\local\programs\git\bin" | Add-DirectoryToPath -Prepend
 
     ## Install-Module DockerCompletion -Scope CurrentUser
     Import-Module DockerCompletion

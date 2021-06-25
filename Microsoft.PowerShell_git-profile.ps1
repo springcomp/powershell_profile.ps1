@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param( [switch]$completions )
 
-Add-DirectoryToPath -Path "D:\Users\mlabelle\AppData\Local\Programs\Git\usr\bin"
+Add-DirectoryToPath -Path "$Env:LOCALAPPDATA\Programs\Git\cmd"
 
 if ($completions.IsPresent) {
 
@@ -9,7 +9,7 @@ if ($completions.IsPresent) {
 
     ## CLI completions require Git bash
 
-    "d:\users\mlabelle\appdata\local\programs\git\bin" | Add-DirectoryToPath -Prepend
+    "$Env:LOCALAPPDATA\Programs\Git\bin" | Add-DirectoryToPath -Prepend
 
     ## Install-Module -Name PSBashCompletions -Scope CurrentUser
     ## $completionsPath = Join-Path (Split-Path -Parent $PROFILE) Completions
@@ -59,6 +59,7 @@ Function feature-finish {
     $feature = $branch.Replace("feature/", "")
     git flow feature finish $feature
 }
+Function fetch { git fetch --all -p $args }
 Function g { git status }
 Function lol { git log --oneline --decorate --graph }
 Function pull { git fetch -p; git merge --ff-only }
