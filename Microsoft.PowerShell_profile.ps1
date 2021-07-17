@@ -280,7 +280,8 @@ Set-Alias -Name up -Value Update-Profile
 Function Install-Profile {
     param(
         [Parameter(Position = 0, Mandatory = $true)]
-        [string]$name
+        [string]$name,
+        [string]$load
     )
 
     BEGIN{
@@ -303,6 +304,8 @@ Function Install-Profile {
         } else {
             Update-Profile -Name $name
             Add-Content -Path $profiles -Value 
+
+            if ($load.IsPresent) { Load-Profile $name }
         }
     }
 }
