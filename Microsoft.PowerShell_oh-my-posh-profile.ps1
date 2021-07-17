@@ -15,6 +15,13 @@ Function Upgrade-OhMyPosh {
 
 }
 
+Function Upgrade-TerminalIcons {
+  
+  if (Get-Module Terminal-Icons -ListAvailable) { Update-Module Terminal-Icons -Force }
+  else { Install-Module Terminal-Icons -Force }
+
+}
+
 if (Get-Module "oh-my-posh" -ListAvailable) {
   Import-Module -Name "oh-my-posh"
   Set-PoshPrompt -Theme  "~/.poshthemes/oh-my-posh.json"
