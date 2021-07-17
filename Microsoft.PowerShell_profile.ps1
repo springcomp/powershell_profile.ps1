@@ -296,8 +296,14 @@ Function Install-Profile {
             return 
         }
 
-        Update-Profile -Name $name
-        Add-Content -Path $profiles -Value "Load-Profile `"$name`""
+        $newLine = "Load-Profile `"$($name.ToLowerInvariant())`""
+
+        if (Get-Content -Path $profiles |? { $_ -match $newLine }){
+            Write-Host "Profile $name already registered to the profiles profile." -ForegroundColor Yellow
+        } else {
+            Update-Profile -Name $name
+            Add-Content -Path $profiles -Value 
+        }
     }
 }
 
