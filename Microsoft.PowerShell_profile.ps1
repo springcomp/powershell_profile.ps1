@@ -232,5 +232,48 @@ Function Load-Profile {
 
 Set-Alias -Name lp -Value Load-Profile
 
-Load-Profile "profiles" -Quiet
+Function Download-Profile {
+    [CmdletBinding()]
+    param(
+        [Parameter(Position = 0)]
+        [string]$name = "",
+        [switch]$force
+    )
 
+    BEGIN {
+
+        $template = "Microsoft.PowerShell_%{NAME}%profile.ps1"
+        $address = "https://raw.githubusercontent.com/springcomp/powershell_profile.ps1/master/"
+        $fileName = Split-Path $profile -Leaf
+        if ($name -ne ""){ $fileName = $fileName.Replace("profile", "$name-profile") }
+        $uri = "$($address)$($fileName)"
+        $destination = Join-Path -Path (Split-Path $profile) -ChildPath $fileName
+
+        Write-Host $uri
+        Write-Host $destination
+
+    }
+    PROCESS {
+
+        if (-not (Test-Path $destination) -or $force.IsPresent) {
+            Invoke-RestMethod `
+                -Method Get `
+                -Uri $uri `
+                -OutFile $destination
+            
+            Write-Host "$destination updated." -ForegroundColor Cyan
+        }
+        else {
+            Write-Host "$destination exists. Please, use -force to overwrite." -ForegroundColor Red
+        }
+    }
+}
+
+Function Update-Profile {
+    param ( [string]$name = "" )
+    Download-Profile -Name $name -Force
+}
+
+Set-Alias -Name up -Value Update-Profile
+
+Load-Profile "profiles" -Quiet
