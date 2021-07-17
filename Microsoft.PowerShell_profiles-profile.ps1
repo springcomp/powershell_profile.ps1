@@ -1,6 +1,9 @@
-## Load useful profiles
+## Load required profiles
 
-Load-Profile "paths"
+Load-Profile "modules" -Quiet
+Load-Profile "paths" -Quiet
+
+## Load usefull profiles
 
 ##Load-Profile "azure"
 Load-Profile "b64"
@@ -15,6 +18,6 @@ Load-Profile "vim"
 
 ## SECURITY - SENSITIVE DATA
 
-#Load-Profile "secret"
+Load-Profile "secret" -Quiet
 
 ## SENSITIVE DATA
