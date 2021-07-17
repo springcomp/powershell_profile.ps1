@@ -277,5 +277,31 @@ Function Update-Profile {
 
 Set-Alias -Name up -Value Update-Profile
 
-Load-Profile "profiles" -Quiet
+Function Install-Profile {
+    param(
+        [Parameter(Position = 0, Mandatory = $true)]
+        [string]$name
+    )
 
+    BEGIN{
+
+        if ($name -eq "profiles"){
+            Write-Host "Cannot install `"profiles`" profile into itself." -ForegroundColor Red
+            return
+        }
+
+        $profiles = Split-Path $profile -Leaf
+        $profiles = $profiles.Replace("profile", "profiles-profile")
+        $profiles = Join-Path (Split-Path $profile) -ChildPath $profiles
+    }
+    PROCESS{
+
+        Update-Profile -Name $name
+        Add-Content -Path $profiles -Value "Load-Profile `"$name`""
+
+    }
+}
+
+## 
+
+Load-Profile "profiles" -Quiet
