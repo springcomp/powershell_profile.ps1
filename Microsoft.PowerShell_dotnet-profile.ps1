@@ -22,7 +22,9 @@ Function vs {
     [CmdletBinding()]
     param(
         [Alias("Solution")]
-        [string]$path = $null
+        [string]$path = $null,
+        [Parameter(ValueFromRemainingArguments = $true)]
+        [string]$remainingArgs
     )
 
     if (-not $path) {
@@ -40,7 +42,7 @@ Function vs {
         if ($project) { & devenv.exe $project.FullName }
         else {
             Write-Host "Launching Visual Studio"
-            & devenv.exe $args 
+            & devenv.exe $remainingArgs 
         }
     }
 }
