@@ -223,7 +223,9 @@ Function Load-Profile {
         $powerShellProfile = Get-CachedPowerShellProfile -Name $name -Quiet:$quiet
 
         if ($powerShellProfile -and ([IO.File]::Exists($powerShellProfile))) {
-            Write-Host "Loading $name profile." -ForegroundColor Gray
+            if (-not $quiet.IsPresent) {
+                Write-Host "Loading $name profile." -ForegroundColor Gray
+            }
             $expression = ". `"$powerShellProfile`" $remainingArgs"
             Invoke-Expression -Command $expression
         }
