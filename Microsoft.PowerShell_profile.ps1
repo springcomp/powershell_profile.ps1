@@ -286,8 +286,7 @@ Function Install-Profile {
     BEGIN{
 
         if ($name -eq "profiles"){
-            Write-Host "Cannot install `"profiles`" profile into itself." -ForegroundColor Red
-            return
+            throw "Cannot install `"profiles`" profile into itself."
         }
 
         $profiles = Split-Path $profile -Leaf
