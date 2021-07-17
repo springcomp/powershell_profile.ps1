@@ -285,19 +285,19 @@ Function Install-Profile {
 
     BEGIN{
 
-        if ($name -eq "profiles"){
-            throw "Cannot install `"profiles`" profile into itself."
-        }
-
         $profiles = Split-Path $profile -Leaf
         $profiles = $profiles.Replace("profile", "profiles-profile")
         $profiles = Join-Path (Split-Path $profile) -ChildPath $profiles
     }
     PROCESS{
 
+        if ($name -eq "profiles"){
+            Write-Host "Cannot install `"profiles`" profile into itself." -ForegroundColor Red
+            return 
+        }
+
         Update-Profile -Name $name
         Add-Content -Path $profiles -Value "Load-Profile `"$name`""
-
     }
 }
 
