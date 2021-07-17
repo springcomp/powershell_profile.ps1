@@ -276,8 +276,8 @@ Function Download-Profile {
 }
 
 Function Update-Profile {
-    param ( [string]$name = "" )
-    Download-Profile -Name $name -Force -Load
+    param ( [string]$name = "", [switch]$reload )
+    Download-Profile -Name $name -Force -Load:$reload
 }
 
 Set-Alias -Name up -Value Update-Profile
@@ -307,7 +307,7 @@ Function Install-Profile {
         if (Get-Content -Path $profiles |? { $_ -match $newLine }){
             Write-Host "Profile $name already registered to the profiles profile." -ForegroundColor Yellow
         } else {
-            Update-Profile -Name $name
+            Update-Profile -Name $name -Reload:$load
             Add-Content -Path $profiles -Value 
         }
     }
