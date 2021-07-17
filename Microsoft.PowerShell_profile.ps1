@@ -286,7 +286,7 @@ Function Install-Profile {
     param(
         [Parameter(Position = 0, Mandatory = $true)]
         [string]$name,
-        [string]$load
+        [switch]$load
     )
 
     BEGIN{
