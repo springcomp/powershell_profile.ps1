@@ -249,8 +249,7 @@ Function Download-Profile {
         $uri = "$($address)$($fileName)"
         $destination = Join-Path -Path (Split-Path $profile) -ChildPath $fileName
 
-        Write-Host $uri
-        Write-Host $destination
+        Write-Host "GET $uri HTTP/1.1" -ForegroundColor DarkGray
 
     }
     PROCESS {
