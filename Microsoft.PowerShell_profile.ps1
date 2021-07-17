@@ -237,7 +237,8 @@ Function Download-Profile {
     param(
         [Parameter(Position = 0)]
         [string]$name = "",
-        [switch]$force
+        [switch]$force,
+        [switch]$load
     )
 
     BEGIN {
@@ -263,6 +264,10 @@ Function Download-Profile {
                 -OutFile $destination
             
             Write-Host "$destination updated." -ForegroundColor Cyan
+
+            if ($load.IsPresent) {
+                Load-Profile $name
+            }
         }
         else {
             Write-Host "$destination exists. Please, use -force to overwrite." -ForegroundColor Red
@@ -272,7 +277,7 @@ Function Download-Profile {
 
 Function Update-Profile {
     param ( [string]$name = "" )
-    Download-Profile -Name $name -Force
+    Download-Profile -Name $name -Force -Load
 }
 
 Set-Alias -Name up -Value Update-Profile
