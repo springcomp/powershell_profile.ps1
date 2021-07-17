@@ -1,11 +1,15 @@
-Function Upgrade-OhMyPosh {
-  
+Function Update-PoshTheme {
+
   $address = "https://raw.githubusercontent.com/springcomp/config-files/master/.poshthemes/oh-my-posh.json"
   $ROOT="~/.poshthemes/"
 
   New-Item -Path $ROOT -ItemType Directory -EA SilentlyContinue | Out-Null
   Invoke-RestMethod -Uri $address -OutFile "$($ROOT)oh-my-posh.json"
 
+}
+
+Function Upgrade-OhMyPosh {
+  
   if (Get-Module "oh-my-posh" -ListAvailable) { Update-Module "oh-my-posh" -Force }
   else { Install-Module "oh-my-posh" -Force }
 
