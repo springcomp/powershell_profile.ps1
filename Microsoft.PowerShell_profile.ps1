@@ -310,7 +310,7 @@ Function Install-Profile {
             Write-Host "Profile $name already registered to the profiles profile." -ForegroundColor Yellow
         } else {
             Update-Profile -Name $name -Reload:$load
-            Add-Content -Path $profiles -Value 
+            Add-Content -Path $profiles -Value $newLine
         }
     }
 }
