@@ -1,10 +1,105 @@
-## Well-known profiles script
+## $Env:PATH management
+Function Add-DirectoryToPath {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Alias("FullName")]
+        [string] $path,
+        [string] $variable = "PATH",
 
+        [switch] $clear,
+        [switch] $force,
+        [switch] $prepend,
+        [switch] $whatIf
+    )
+
+    BEGIN {
+
+        ## normalize paths
+
+        $count = 0
+
+        $paths = @()
+
+        if (-not $clear.IsPresent) {
+
+            $environ = Invoke-Expression "`$Env:$variable"
+            $environ.Split(";") | ForEach-Object {
+                if ($_.Length -gt 0) {
+                    $count = $count + 1
+                    $paths += $_.ToLowerInvariant()
+                }
+            }
+
+            Write-Verbose "Currently $($count) entries in `$env:$variable"
+        }
+
+        Function Array-Contains {
+            param(
+                [string[]] $array,
+                [string] $item
+            )
+
+            $any = $array | Where-Object -FilterScript {
+                $_ -eq $item
+            }
+
+            Write-Output ($null -ne $any)
+        }
+    }
+
+    PROCESS {
+
+        ## Using [IO.Directory]::Exists() instead of Test-Path for performance purposes
+
+        ##$path = $path -replace "^(.*);+$", "`$1"
+        ##$path = $path -replace "^(.*)\\$", "`$1"
+        if ([IO.Directory]::Exists($path) -or $force.IsPresent) {
+
+            #$path = (Resolve-Path -Path $path).Path
+            $path = $path.Trim()
+
+            $newPath = $path.ToLowerInvariant()
+            if (-not (Array-Contains -Array $paths -Item $newPath)) {
+                if ($whatIf.IsPresent) {
+                    Write-Host $path
+                }
+
+                if ($prepend.IsPresent) { $paths = , $path + $paths }
+                else { $paths += $path }
+
+                Write-Verbose "Adding $($path) to `$env:$variable"
+            }
+        }
+        else {
+
+            Write-Host "Invalid entry in `$Env:$($variable): ``$path``" -ForegroundColor Yellow
+
+        }
+    }
+
+    END {
+
+        ## re-create PATH environment variable
+
+        $separator = [IO.Path]::PathSeparator
+        $joinedPaths = [string]::Join($separator, $paths)
+
+        if ($whatIf.IsPresent) {
+            Write-Output $joinedPaths
+        }
+        else {
+            Invoke-Expression " `$env:$variable = `"$joinedPaths`" "
+        }
+    }
+
+}
+
+## Well-known profiles script
 Function Get-DefaultProfile {
     $___profile = Join-Path -Path (Split-Path -Path $profile -Parent) -ChildPath "profile.ps1"
     Write-Output $___profile
 }
-
 Function Remove-DefaultProfile {
     $___profile = Get-DefaultProfile
     if (Test-Path $___profile) { 
@@ -49,8 +144,9 @@ Function Load-Profile {
     param(
         [Parameter(Position = 0)]
         [string] $name,
+        [switch] $quiet,
 
-        [Parameter(Mandatory = $false, Position = 1, ValueFromRemainingArguments)]
+        [Parameter(Mandatory = $false, ValueFromRemainingArguments)]
         $remainingArgs
     )
 
@@ -70,7 +166,7 @@ Function Load-Profile {
 
         Function Get-CachedPowerShellProfile {
             [CmdletBinding()]
-            param([string]$name)
+            param( [string]$name, [switch]$quiet )
 
             ## Using [IO.File]::Exists() and [IO.Directory]::Exists() instead of Test-Path for performance purposes
             ## Using [IO.File]::GetLastWriteTime() instead of (Get-Item -Path).LastWriteTimeUtc for performance purposes
@@ -96,7 +192,9 @@ Function Load-Profile {
             PROCESS {
                 $originalProfile = Get-Profile -Name $name
                 if (-not $originalProfile -or (-not ([IO.File]::Exists($originalProfile)))) {
-                    Write-Host "No such profile '$name'." -ForegroundColor Magenta
+                    if (-not $quiet.IsPresent) {
+                        Write-Host "No such profile '$name'." -ForegroundColor Magenta
+                    }
                     return
                 }
                 $cachedProfile = Get-Profile -Name $name -Folder $cachedProfilesFolder
@@ -122,7 +220,7 @@ Function Load-Profile {
 
     PROCESS {
 
-        $powerShellProfile = Get-CachedPowerShellProfile -Name $name
+        $powerShellProfile = Get-CachedPowerShellProfile -Name $name -Quiet:$quiet
 
         if ($powerShellProfile -and ([IO.File]::Exists($powerShellProfile))) {
             Write-Host "Loading $name profile." -ForegroundColor Gray
@@ -134,94 +232,5 @@ Function Load-Profile {
 
 Set-Alias -Name lp -Value Load-Profile
 
-Load-Profile "base"
+Load-Profile "profiles" -Quiet
 
-## Load useful profiles
-
-##Load-Profile "azure"
-Load-Profile "b64"
-Load-Profile "dotnet"
-Load-Profile "docker"
-Load-Profile "git"
-Load-Profile "json"
-Load-Profile "local"
-Load-Profile "oh-my-posh"
-Load-Profile "psreadline"
-Load-Profile "vim"
-
-## Setup PATH environment variable
-
-$_paths = `
-    "C:\Portable Apps", `
-    "D:\Projects\springcomp\clip\src\clip\bin\Debug"
-
-$_paths | Add-DirectoryToPath 
-
-## SECURITY - SENSITIVE DATA
-
-#Load-Profile "secret"
-
-## SENSITIVE DATA
-
-## USEFUL FUNCTIONS
-
-Function c {
-    param([string] $path = ".")
-    . code $path
-}
-Function ccv { Get-CurrentVersion | clipp }
-Function cguid { [Guid]::NewGuid().guid | clipp }
-Function cwd { $PWD.Path | clipp }
-Function csp {
-    [CmdletBinding()]
-    param(
-        [Parameter(Position = 0)]
-        [string]$path = $profile
-    )
-    code (split-path -path "$path")
-}
-Function esp { explorer (split-path $args) }
-Function ewd {
-    param([string] $path = $PWD.Path)
-    if ($path.EndsWith("\")) {
-        $path = $path.Substring(0, $path.Length - 1)
-    }
-    explorer $path 
-}
-Set-Alias -Name e -Value ewd
-Function filezilla { & 'C:\Portable Apps\FileZilla\FileZillaPortable.exe' }
-Set-Alias -Name zilla -Value filezilla
-Function Get-CurrentVersion {
-    $epoch = [DateTime]::Parse("2000-01-01")
-    $now = Get-Date
-    $build = [Math]::Floor(($now - $epoch).TotalDays)
-    $rev = [Math]::Floor(($now - $now.Date).TotalSeconds / 2)
-    Write-Output "1.0.$($build).$($rev)"
-}
-Set-Alias -Name gcv -Value Get-CurrentVersion
-Function izarc { & 'C:\Portable Apps\IZarc2Go\IZArc2Go.exe' }
-Function keepass { & 'C:\Portable Apps\KeePass\KeePass.exe' }
-Set-Alias -Name kp -Value keepass
-
-Function rmf {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
-        [Alias("PSPath")]
-        [Alias("FullName")]
-        [string]$path
-    )
-    Remove-Item `
-        -Path $path `
-        -Recurse `
-        -Force 
-}
-Function servicebus { & 'C:\Portable Apps\ServiceBus Explorer\ServiceBusExplorer.exe' }
-Set-Alias -Name sbex -Value servicebus
-
-Function Upgrade-PowerShell {
-    Remove-Item -Path "$Env:LOCALAPPDATA\Microsoft\powershell-daily" -Recurse -Force -EA SilentlyContinue
-    Copy-Item -Path "$Env:LOCALAPPDATA\Microsoft\powershell-daily.old\assets" -Destination "$Env:LOCALAPPDATA\Microsoft\powershell-daily\assets" -Recurse
-    Invoke-Expression "& { $(Invoke-RestMethod 'https://aka.ms/install-powershell.ps1') } -daily"
-}
-Set-Alias -Name update -Value Upgrade-PowerShell
