@@ -294,6 +294,8 @@ Function Install-Profile {
         $profiles = Split-Path $profile -Leaf
         $profiles = $profiles.Replace("profile", "profiles-profile")
         $profiles = Join-Path (Split-Path $profile) -ChildPath $profiles
+
+        if (-not (Test-Path $profiles)) { New-Item -Path $profiles -ItemType File | Out-Null }
     }
     PROCESS{
 
