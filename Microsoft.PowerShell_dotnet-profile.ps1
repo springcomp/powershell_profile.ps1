@@ -15,16 +15,15 @@ if ($completions.IsPresent) {
     }
 }
 
-Function me { Set-Location D:\Projects\springcomp }
-Function pro { Set-Location D:\Projects }
+$Env:PROJECT_DIRECTORY = Join-Path -Path ([IO.Path]::GetPathRoot($Env:USERPROFILE)) -ChildPath "Projects"
+Function me { Set-Location ([IO.Path]::Combine($Env:PROJECT_DIRECTORY, "springcomp")) }
+Function pro { Set-Location $Env:PROJECT_DIRECTORY }
 Function run-tests { Get-ChildItem -Path $PATH -Recurse -Filter *Tests.csproj | % { dotnet test $_.FullName } }
 Function vs {
     [CmdletBinding()]
     param(
         [Alias("Solution")]
-        [string]$path = $null,
-        [Parameter(ValueFromRemainingArguments = $true)]
-        [string]$remainingArgs
+        [string]$path = $null
     )
 
     if (-not $path) {
@@ -42,7 +41,7 @@ Function vs {
         if ($project) { & devenv.exe $project.FullName }
         else {
             Write-Host "Launching Visual Studio"
-            & devenv.exe $remainingArgs 
+            & devenv.exe $args 
         }
     }
 }
