@@ -309,8 +309,6 @@ Function Install-Profile {
         } else {
             Update-Profile -Name $name
             Add-Content -Path $profiles -Value 
-
-            if ($load.IsPresent) { Load-Profile $name }
         }
     }
 }
