@@ -20,6 +20,6 @@ if (Get-Module "oh-my-posh" -ListAvailable) {
   Set-PoshPrompt -Theme  "~/.poshthemes/oh-my-posh.json"
 }
 
-if (Get-Module "oh-my-posh" -ListAvailable) {
+if (Get-Module Terminal-Icons -ListAvailable) {
   Import-Module -Name Terminal-Icons
 }
