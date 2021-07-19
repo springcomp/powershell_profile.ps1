@@ -11,7 +11,7 @@ if ($completions.IsPresent) {
 
     ## CLI completions require Git bash
 
-    "d:\users\mlabelle\appdata\local\programs\git\bin" | Add-DirectoryToPath -Prepend
+    "$Env:LOCALAPPDATA\programs\git\bin" | Add-DirectoryToPath -Prepend
 
     ## Install-Module DockerCompletion -Scope CurrentUser
     Import-Module DockerCompletion
