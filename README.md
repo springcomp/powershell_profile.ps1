@@ -8,7 +8,13 @@ irm https://raw.githubusercontent.com/springcomp/powershell_profile.ps1/master/M
 
 Then open a PowerShell prompt of reload your profile.
 
+## Customize your prompt with Oh-My-Posh
+
 ```pwsh
-install-profile oh-my-posh
 install-profile psreadline
+install-profile oh-my-posh -reload
+
+upgrade-ohmyposh
+upgrade-terminalicons
+update-poshtheme
 ```
