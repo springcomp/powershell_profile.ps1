@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param( [switch]$completions )
 
-$__GIT_HOME="C:\Program Files\Git\usr\bin"
+$__GIT_HOME="$Env:LOCALAPPDATA\programs\git\bin"
 
 if ($completions.IsPresent) {
 
