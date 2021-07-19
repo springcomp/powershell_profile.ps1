@@ -11,8 +11,8 @@ if ($completions.IsPresent) {
 
     $__GIT_HOME | Add-DirectoryToPath -Prepend
 
-    Function Installp-GitCompletion {
-        Install-Module -Name PSBashCompletions -Scope CurrentUser
+    Function Install-GitCompletion {
+        Install-Module -Name PSBashCompletions -Scope CurrentUser -Force
         $completionsPath = Join-Path (Split-Path -Parent $PROFILE) Completions
         $completions = "https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash"
         Invoke-WebRequest -Method Get $completions -OutFile "$completionsPath/git.sh"
@@ -20,8 +20,10 @@ if ($completions.IsPresent) {
 
     $completionsPath = Join-Path (Split-Path -Parent $PROFILE) Completions
     if (Test-Path $completionsPath) {
-        Import-Module PSBashCompletions
-        Register-BashArgumentCompleter git "$completionsPath/git.sh"
+        if (Get-Module -Name PSBashCompletions -ListAvailable){
+            Import-Module -Name PSBashCompletions
+            Register-BashArgumentCompleter git "$completionsPath/git.sh"
+        }
     }
 }
 
