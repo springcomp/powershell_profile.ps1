@@ -298,6 +298,47 @@ Function Install-Profile {
         $profiles = Join-Path (Split-Path $profile) -ChildPath $profiles
 
         if (-not (Test-Path $profiles)) { New-Item -Path $profiles -ItemType File | Out-Null }
+
+        Function Get-NextState {
+            param(
+                [string] $line,
+                [int] $state
+            )
+            $nextState = $state
+            if (($state -eq 0) -and ($line -match "## Load useful profiles")) { $nextState = 1 }
+            if (($state -eq 1) -and ($line -match "## SECURITY - SENSITIVE DATA")) { $nextState = 2 }
+            Write-Output $nextState
+        }
+
+        Function Get-LoadedProfiles {
+            $before = @()
+            $content = @()
+            $after = @()
+            $state = 0
+
+            Get-Content -Path $profiles |? {
+
+                $line = $_
+                $nextState = Get-NextState -Line $line -State $state
+
+                switch ($state) {
+                    0 {
+                        $before += $line
+                    }
+                    1 {
+                        if ($nextState -eq 2) { $after += $line }
+                        else { $content += $line }
+                    }
+                    2 {
+                        $after += $line
+                    }
+                }
+
+                $state = $nextState
+            }
+
+            Write-Output $before, $content, $after
+        }
     }
     PROCESS{
 
@@ -312,7 +353,13 @@ Function Install-Profile {
             Write-Host "Profile $name already registered to the profiles profile." -ForegroundColor Yellow
         } else {
             Update-Profile -Name $name -Reload:$load
-            Add-Content -Path $profiles -Value $newLine
+
+            $lines = Get-LoadedProfiles 
+            $lines[1] += $newLine
+            $lines[1] = $lines[1] | Sort-Object
+
+            Clear-Content -Path $profiles 
+            $lines |% { $_ |% { Add-Content -Path $profiles -Value $_ }}
         }
     }
 }
