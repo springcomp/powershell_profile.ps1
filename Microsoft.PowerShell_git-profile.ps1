@@ -65,7 +65,7 @@ Function feature-finish {
     $feature = $branch.Replace("feature/", "")
     git flow feature finish $feature
 }
-Function fetch { git fetch $args }
+Function fetch { git fetch --all -p $args }
 Function g { git status }
 Function lol { git log --oneline --decorate --graph }
 Function pull { git fetch -p; git merge --ff-only }
