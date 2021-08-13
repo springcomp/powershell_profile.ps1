@@ -79,8 +79,13 @@ Function servicebus { & 'C:\Portable Apps\ServiceBus Explorer\ServiceBusExplorer
 Set-Alias -Name sbex -Value servicebus
 
 Function Upgrade-PowerShell {
-    Remove-Item -Path "$Env:LOCALAPPDATA\Microsoft\powershell-daily" -Recurse -Force -EA SilentlyContinue
-    Copy-Item -Path "$Env:LOCALAPPDATA\Microsoft\powershell-daily.old\assets" -Destination "$Env:LOCALAPPDATA\Microsoft\powershell-daily\assets" -Recurse
-    Invoke-Expression "& { $(Invoke-RestMethod 'https://aka.ms/install-powershell.ps1') } -daily"
+    $hasPwsh = [bool](Get-Process -Name "pwsh")
+    if (-not $hasPwsh){
+        Remove-Item -Path "$Env:LOCALAPPDATA\Microsoft\powershell-daily" -Recurse -Force -EA SilentlyContinue
+        Invoke-Expression "& { $(Invoke-RestMethod 'https://aka.ms/install-powershell.ps1') } -daily"
+    } else {
+        Write-Host "pwsh-core/$($PSVersionTable.PSVersion) is currently running." -ForegroundColor Yellow
+        Write-Host "Please, close all pwsh windows, including Visual Studio Code and Windows Terminal." -ForegroundColor Yellow
+    }
 }
 Set-Alias -Name update -Value Upgrade-PowerShell
