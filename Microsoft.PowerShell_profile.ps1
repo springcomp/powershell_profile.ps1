@@ -282,6 +282,8 @@ Function Update-Profile {
     Download-Profile -Name $name -Force -Load:$reload
 }
 
+$hasAlias = [bool] (Get-Alias -Name lp |? { $_.ResolvedCommand.Name -eq "Out-Printer"  })
+if ($hasAlias) { Remove-Item -Path "alias:\lp" }
 Set-Alias -Name up -Value Update-Profile
 
 Function Install-Profile {
