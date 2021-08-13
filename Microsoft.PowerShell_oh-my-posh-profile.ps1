@@ -11,14 +11,14 @@ Function Update-PoshTheme {
 Function Upgrade-OhMyPosh {
   
   if (Get-Module "oh-my-posh" -ListAvailable) { Update-Module "oh-my-posh" -Force }
-  else { Install-Module "oh-my-posh" -Force }
+  else { Install-Module "oh-my-posh" -Scope CurrentUser -Force }
 
 }
 
 Function Upgrade-TerminalIcons {
   
   if (Get-Module Terminal-Icons -ListAvailable) { Update-Module Terminal-Icons -Force }
-  else { Install-Module Terminal-Icons -Force }
+  else { Install-Module Terminal-Icons -Scope CurrentUser -Force }
 
 }
 
