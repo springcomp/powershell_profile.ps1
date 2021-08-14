@@ -1,3 +1,5 @@
+# 1.0.7896.17065
+
 ## $Env:PATH management
 Function Add-DirectoryToPath {
     [CmdletBinding()]
@@ -109,36 +111,149 @@ Function Remove-DefaultProfile {
 }
 
 Function Get-Profile {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = "Path")]
     param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(Mandatory = $false, Position = 0, ParameterSetName = "Path")]
+        [Parameter(Mandatory = $false, Position = 0, ParameterSetName = "Remote")]
         [string] $name = $null,
-
-        [Parameter(Mandatory = $false, Position = 1)]
-        [string] $folder = (Split-Path $profile -Parent)
+    
+        [Parameter(Mandatory = $false, Position = 1, ParameterSetName = "Path")]
+        [string] $folder = (Split-Path $profile -Parent),
+    
+        [Parameter(ParameterSetName = "Remote")]
+        [switch] $remote
     )
+    
+    BEGIN {
+    
+        Function Test-WebPath {
+            param( [string]$uri )
+    
+            try { irm -Method HEAD -Uri $uri | Out-Null } catch { return $false }
+            return $true
+        }
+    
+        $pattern = (Split-Path $profile -Leaf)
+    
+        $template = "Microsoft.PowerShell_%{NAME}%profile.ps1"
+        $address = "https://raw.githubusercontent.com/springcomp/powershell_profile.ps1/master/"
+    }
+    
+    PROCESS {
+    
+        if (-not $name) { $name = "profile" }
+    
+        if ($remote.IsPresent) {
+    
+            $alternate = $pattern.Replace("profile", "$name-profile")
+            $profilePath = "$($address)$($alternate)"
+            if (-not (Test-WebPath -Uri $profilePath)) {
+                $alternate = $pattern.Replace("profile", "$name")
+                $profilePath = "$($address)$($alternate)"
+                if (-not (Test-WebPath -Uri $profilePath)) { return }
+            }
+        }
+    
+        else {
+    
+            ## Using [IO.File]::Exists() instead of Test-Path for performance purposes
+            ## Using [IO.Path]::Combine() instead of Join-Path for performance purposes
+    
+            $alternate = $pattern.Replace("profile", $name)
+            $profilePath = [IO.Path]::Combine($folder, $alternate)
+            if (-not ([IO.File]::Exists($profilePath))) {
+                $alternate = $pattern.Replace("profile", "$name-profile")
+                $profilePath = [IO.Path]::Combine($folder, $alternate)
+                if (-not ([IO.File]::Exists($profilePath))) { return }
+            }
+        }
+    
+        Write-Output $profilePath
+    }
+}             
+Function CheckFor-UpdateProfile {
+    [CmdletBinding()]
+    param( [string]$name = "" )
 
     BEGIN {
 
-        $pattern = (Split-Path $profile -Leaf)
+        Function Get-Version {
+            [CmdletBinding()]
+            param( [string]$name, [switch]$remote )
+        
+            if ($remote.IsPresent) {
+            
+                $address = Get-Profile -Name $name -Remote
+                if (-not $address) { return "0.0.0000.00000" }
+            
+                $line = (irm -Method Get -Uri $address).Split("`n") |`
+                    Select-Object -First 1
+            }
+            else {
+            
+                $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
+                $cachedProfile = Get-Profile -Name $name -Folder $cachedProfilesFolder
+                if (-not ([IO.File]::Exists($cachedProfile))) { return "0.0.0000.00000" }
+            
+                $line = Get-Content -Path $cachedProfile |`
+                    Select-Object -First 1
+            }
+        
+            $pattern = "^#\s*(?<ver>\d+\.\d+(?:\.\d{4}){2}\d)\s*`$"
+            $matches = ($line -match $pattern)
+            if (-not ($line -match $pattern)) {
+                return "0.0.0000.00000"
+            }
+        
+             return $matches["ver"]
+        }
+
+        Function Get-LastUpdated {
+            [CmdletBinding()]
+            param( [string]$name )
+
+            $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
+            $cachedProfileUpdateFile = [IO.Path]::Combine($cachedProfilesFolder, "$($name)_update.txt")
+            if (-not ([IO.File]::Exists($cachedProfileUpdateFile))) {
+                return [DateTime]::MinValue
+            }
+
+            $line = Get-Content -Path $cachedProfileUpdateFile |`
+                Select-Object -First 1
+
+            $pattern = "\s*(?<ts>\d{4}(?:\-\d{2}){2}T\d{2}(?::\d{2}){2}\.\d{7}Z)\s*`$"
+            if (-not ($line -match $pattern)) {
+                return [DateTime]::MinValue
+            }
+
+            $timestamp = [DateTime]::Parse($matches["ts"])
+            return $timestamp
+        }
+        Function Needs-Update {
+            [CmdletBinding()]
+            param( [string]$name )
+
+            $CHECK_FOR_UPDATES_FREQUENCY_IN_DAYS = 1
+
+            $lastUpdated = Get-LastUpdated -Name $name
+            $now = (Get-Date).ToUniversalTime()
+            if (($now - $lastUpdated).TotalDays -gt $CHECK_FOR_UPDATES_FREQUENCY_IN_DAYS) {
+                $version = Get-Version -Name $name
+                $remoteVer = Get-Version -Name $name -Remote
+                return ($remoteVer -gt $version)
+            }
+
+            return $false
+        }
     }
 
     PROCESS {
-
-        ## Using [IO.File]::Exists() instead of Test-Path for performance purposes
-        ## Using [IO.Path]::Combine() instead of Join-Path for performance purposes
-
-        if (-not $name) { $name = "profile" }
-        $alternate = $pattern.Replace("profile", $name)
-        $profilePath = [IO.Path]::Combine($folder, $alternate)
-        if (-not ([IO.File]::Exists($profilePath))) {
-            $alternate = $pattern.Replace("profile", "$name-profile")
-            $profilePath = [IO.Path]::Combine($folder, $alternate)
-            if (-not ([IO.File]::Exists($profilePath))) { return }
+        if (Needs-Update -Name $name) {
+            Write-Host "Profile '$name' has new version. Type 'update-profile $name -reload' to update." -ForegroundColor Yellow
         }
-        Write-Output $profilePath
     }
 }
+
 Function Load-Profile {
     [CmdletBinding()]
     param(
@@ -220,6 +335,8 @@ Function Load-Profile {
 
     PROCESS {
 
+        CheckFor-UpdateProfile -Name $name
+
         $powerShellProfile = Get-CachedPowerShellProfile -Name $name -Quiet:$quiet
 
         if ($powerShellProfile -and ([IO.File]::Exists($powerShellProfile))) {
@@ -280,6 +397,7 @@ Function Download-Profile {
 Function Update-Profile {
     param ( [string]$name = "", [switch]$reload )
     Download-Profile -Name $name -Force -Load:$reload
+    Set-LastUpdatedProfile -Name $name
 }
 
 $hasAlias = [bool] (Get-Alias -Name lp |? { $_.ResolvedCommand.Name -eq "Out-Printer"  })
@@ -364,6 +482,20 @@ Function Install-Profile {
             $lines |% { $_ |% { Add-Content -Path $profiles -Value $_ }}
         }
     }
+}
+
+Function Set-LastUpdatedProfile {
+    [CmdletBinding()]
+    param( [string]$name = "" )
+    
+    $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
+    $cachedProfileUpdateFile = [IO.Path]::Combine($cachedProfilesFolder, "$($name)_update.txt")
+    
+    $timestamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ")
+    
+    Set-Content `
+        -Path $cachedProfileUpdateFile `
+        -Value $timestamp
 }
 
 ## 
