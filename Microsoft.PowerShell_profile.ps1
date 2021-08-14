@@ -1,4 +1,4 @@
-# 1.0.7896.27154
+# 1.0.7896.27263
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -196,11 +196,16 @@ Function Get-CachedPowerShellProfileFolder {
     return $cachedProfilesFolder
 }
 Function Get-CachedProfile {
-    [CmdletBinding(DefaultParameterSetName = "Path")]
     param(
         [string] $name = $null
     )
     Get-Profile -Name $name -Folder (Get-CachedPowerShellProfileFolder)
+}
+Function Get-CachedProfilePath {
+    param(
+        [string] $name = $null
+    )
+    Get-ProfilePath -Name $name -Folder (Get-CachedPowerShellProfileFolder)
 }
 Function Get-DefaultProfile {
     $___profile = Join-Path -Path (Split-Path -Path $profile -Parent) -ChildPath "profile.ps1"
