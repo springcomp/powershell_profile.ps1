@@ -1,4 +1,4 @@
-# 1.0.7896.18146
+# 1.0.7896.20888
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -98,18 +98,106 @@ Function Add-DirectoryToPath {
 }
 
 ## Well-known profiles script
+Function CheckFor-UpdateProfile {
+    [CmdletBinding()]
+    param( [string]$name = "" )
+
+    BEGIN {
+
+        Function Get-LastUpdated {
+            [CmdletBinding()]
+            param( [string]$name )
+
+            $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
+            $cachedProfileUpdateFile = [IO.Path]::Combine($cachedProfilesFolder, "$($name)_update.txt")
+            if (-not ([IO.File]::Exists($cachedProfileUpdateFile))) {
+                return [DateTime]::MinValue
+            }
+
+            $line = Get-Content -Path $cachedProfileUpdateFile |`
+                Select-Object -First 1
+
+            $pattern = "\s*(?<ts>\d{4}(?:\-\d{2}){2}T\d{2}(?::\d{2}){2}\.\d{7}Z)\s*`$"
+            if (-not ($line -match $pattern)) {
+                return [DateTime]::MinValue
+            }
+
+            $timestamp = [DateTime]::Parse($matches["ts"])
+            return $timestamp
+        }
+        Function Needs-Update {
+            [CmdletBinding()]
+            param( [string]$name )
+
+            $CHECK_FOR_UPDATES_FREQUENCY_IN_DAYS = 1
+
+            $lastUpdated = Get-LastUpdated -Name $name
+            $now = (Get-Date).ToUniversalTime()
+            if (($now - $lastUpdated).TotalDays -gt $CHECK_FOR_UPDATES_FREQUENCY_IN_DAYS) {
+                $version = Get-VersionProfile -Name $name
+                $remoteVer = Get-VersionProfile -Name $name -Remote
+                return ($remoteVer -gt $version)
+            }
+
+            return $false
+        }
+    }
+
+    PROCESS {
+        if (Needs-Update -Name $name) {
+            Write-Host "Profile '$name' has new version. Type 'update-profile $name -reload' to update." -ForegroundColor Yellow
+        }
+    }
+}
+Function Download-Profile {
+    [CmdletBinding()]
+    param(
+        [Parameter(Position = 0)]
+        [string]$name = "",
+        [switch]$force,
+        [switch]$load
+    )
+
+    BEGIN {
+
+        $uri = Get-Profile -Name $name -Remote
+        $destination = Get-Profile -Name $name
+
+        Write-Host $uri
+        Write-Host $destination
+
+    }
+    PROCESS {
+
+        if (-not (Test-Path $destination) -or $force.IsPresent) {
+            Invoke-RestMethod `
+                -Method Get `
+                -Uri $uri `
+                -Headers @{"Cache-Control"="no-cache"} `
+                -OutFile $destination
+            
+            Write-Host "$destination updated." -ForegroundColor Cyan
+
+            if ($load.IsPresent) {
+                Load-Profile $name
+            }
+        }
+        else {
+            Write-Host "$destination exists. Please, use -force to overwrite." -ForegroundColor Red
+        }
+    }
+}
+Function Get-CachedPowerShellProfileFolder {
+    $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
+    if (-not ([IO.Directory]::Exists($cachedProfilesFolder))) {
+        New-Item -Path $cachedProfilesFolder -ItemType Directory | Out-Null
+    }
+    return $cachedProfilesFolder
+}
 Function Get-DefaultProfile {
     $___profile = Join-Path -Path (Split-Path -Path $profile -Parent) -ChildPath "profile.ps1"
     Write-Output $___profile
 }
-Function Remove-DefaultProfile {
-    $___profile = Get-DefaultProfile
-    if (Test-Path $___profile) { 
-        Write-Host "Removing default profile file." -ForegroundColor Yellow
-        Remove-Item $___profile -Force
-    }
-}
-
 Function Get-Profile {
     [CmdletBinding(DefaultParameterSetName = "Path")]
     param(
@@ -185,8 +273,7 @@ Function Get-VersionProfile {
     }
     else {
     
-        $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
-        $cachedProfile = Get-Profile -Name $name -Folder $cachedProfilesFolder
+        $cachedProfile = Get-Profile -Name $name -Folder (Get-CachedPowerShellProfileFolder)
         if (-not ([IO.File]::Exists($cachedProfile))) { return "0.0.0000.00000" }
     
         $line = Get-Content -Path $cachedProfile |`
@@ -201,205 +288,6 @@ Function Get-VersionProfile {
 
     return $matches["ver"]
 }
-
-Function CheckFor-UpdateProfile {
-    [CmdletBinding()]
-    param( [string]$name = "" )
-
-    BEGIN {
-
-        Function Get-LastUpdated {
-            [CmdletBinding()]
-            param( [string]$name )
-
-            $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
-            $cachedProfileUpdateFile = [IO.Path]::Combine($cachedProfilesFolder, "$($name)_update.txt")
-            if (-not ([IO.File]::Exists($cachedProfileUpdateFile))) {
-                return [DateTime]::MinValue
-            }
-
-            $line = Get-Content -Path $cachedProfileUpdateFile |`
-                Select-Object -First 1
-
-            $pattern = "\s*(?<ts>\d{4}(?:\-\d{2}){2}T\d{2}(?::\d{2}){2}\.\d{7}Z)\s*`$"
-            if (-not ($line -match $pattern)) {
-                return [DateTime]::MinValue
-            }
-
-            $timestamp = [DateTime]::Parse($matches["ts"])
-            return $timestamp
-        }
-        Function Needs-Update {
-            [CmdletBinding()]
-            param( [string]$name )
-
-            $CHECK_FOR_UPDATES_FREQUENCY_IN_DAYS = 1
-
-            $lastUpdated = Get-LastUpdated -Name $name
-            $now = (Get-Date).ToUniversalTime()
-            if (($now - $lastUpdated).TotalDays -gt $CHECK_FOR_UPDATES_FREQUENCY_IN_DAYS) {
-                $version = Get-VersionProfile -Name $name
-                $remoteVer = Get-VersionProfile -Name $name -Remote
-                return ($remoteVer -gt $version)
-            }
-
-            return $false
-        }
-    }
-
-    PROCESS {
-        if (Needs-Update -Name $name) {
-            Write-Host "Profile '$name' has new version. Type 'update-profile $name -reload' to update." -ForegroundColor Yellow
-        }
-    }
-}
-
-Function Load-Profile {
-    [CmdletBinding()]
-    param(
-        [Parameter(Position = 0)]
-        [string] $name,
-        [switch] $quiet,
-
-        [Parameter(Mandatory = $false, ValueFromRemainingArguments)]
-        $remainingArgs
-    )
-
-    BEGIN {
-
-        Function Get-PwshExpression {
-            param([string]$path)
-
-            ## Using [IO.File]::ReadAllText() instead of Get-Content -Raw for performance purposes
-
-            $content = [IO.File]::ReadAllText($path)
-            $content = $content -replace "(?<!\-)[Ff]unction\ +([A-Za-z]+)", 'Function global:$1'
-            $content = $content -replace "[Ss][Ee][Tt]\-[Aa][Ll][Ii][Aa][Ss]\ +(.*)", 'Set-Alias -Scope Global $1'
-
-            Write-Output $content
-        }
-
-        Function Get-CachedPowerShellProfile {
-            [CmdletBinding()]
-            param( [string]$name, [switch]$quiet )
-
-            ## Using [IO.File]::Exists() and [IO.Directory]::Exists() instead of Test-Path for performance purposes
-            ## Using [IO.File]::GetLastWriteTime() instead of (Get-Item -Path).LastWriteTimeUtc for performance purposes
-            ## Using [IO.Path]::Combine() instead of Join-Path for performance purposes
-
-            BEGIN {
-                $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
-                if (-not ([IO.Directory]::Exists($cachedProfilesFolder))) {
-                    New-Item -Path $cachedProfilesFolder -ItemType Directory | Out-Null
-                }
-
-                $pattern = (Split-Path $profile -Leaf)
-                $cachedProfileName = $pattern.Replace("profile", "$name-profile")
-
-                Function New-CachedPowerShellProfile {
-                    Write-Verbose "Creating cached PowerShell profile '$name'"
-                    $newProfile = [IO.Path]::Combine($cachedProfilesFolder, $cachedProfileName)
-                    Set-Content -Path $newProfile -Value (Get-PwshExpression -Path $originalProfile)
-                    Write-Output $newProfile
-                }
-            }
-
-            PROCESS {
-                $originalProfile = Get-Profile -Name $name
-                if (-not $originalProfile -or (-not ([IO.File]::Exists($originalProfile)))) {
-                    if (-not $quiet.IsPresent) {
-                        Write-Host "No such profile '$name'." -ForegroundColor Magenta
-                    }
-                    return
-                }
-                $cachedProfile = Get-Profile -Name $name -Folder $cachedProfilesFolder
-                
-                if ($cachedProfile -and ([IO.File]::Exists($cachedProfile))) {
-                    Write-Verbose "Cached PowerShell profile '$name' exists."
-                    $originalProfileTimestamp = [IO.File]::GetLastWriteTime($originalProfile)
-                    $cachedProfileTimestamp = [IO.File]::GetLastWriteTime($cachedProfile)
-                    if ($originalProfileTimeStamp -gt $cachedProfileTimestamp) {
-                        Write-Verbose "Cached PowerShell profile is obsolete. Replacing..."
-                        $cachedProfile = New-CachedPowerShellProfile
-                    }
-                }
-                else {
-                    Write-Verbose "Cached PowerShell profile '$name' does not exist."
-                    $cachedProfile = New-CachedPowerShellProfile
-                }
-
-                Write-Output $cachedProfile
-            }
-        }
-    }
-
-    PROCESS {
-
-        CheckFor-UpdateProfile -Name $name
-
-        $powerShellProfile = Get-CachedPowerShellProfile -Name $name -Quiet:$quiet
-
-        if ($powerShellProfile -and ([IO.File]::Exists($powerShellProfile))) {
-            if (-not $quiet.IsPresent) {
-                Write-Host "Loading $name profile." -ForegroundColor Gray
-            }
-            $expression = ". `"$powerShellProfile`" $remainingArgs"
-            Invoke-Expression -Command $expression
-        }
-    }
-}
-
-Set-Alias -Name lp -Value Load-Profile
-
-Function Download-Profile {
-    [CmdletBinding()]
-    param(
-        [Parameter(Position = 0)]
-        [string]$name = "",
-        [switch]$force,
-        [switch]$load
-    )
-
-    BEGIN {
-
-        $uri = Get-Profile -Name $name -Remote
-        $destination = Get-Profile -Name $name
-
-        Write-Host $uri
-        Write-Host $destination
-
-    }
-    PROCESS {
-
-        if (-not (Test-Path $destination) -or $force.IsPresent) {
-            Invoke-RestMethod `
-                -Method Get `
-                -Uri $uri `
-                -Headers @{"Cache-Control"="no-cache"} `
-                -OutFile $destination
-            
-            Write-Host "$destination updated." -ForegroundColor Cyan
-
-            if ($load.IsPresent) {
-                Load-Profile $name
-            }
-        }
-        else {
-            Write-Host "$destination exists. Please, use -force to overwrite." -ForegroundColor Red
-        }
-    }
-}
-
-Function Update-Profile {
-    param ( [string]$name = "", [switch]$reload )
-    Download-Profile -Name $name -Force -Load:$reload
-    Set-LastUpdatedProfile -Name $name
-}
-
-$hasAlias = [bool] (Get-Alias -Name lp |? { $_.ResolvedCommand.Name -eq "Out-Printer"  })
-if ($hasAlias) { Remove-Item -Path "alias:\lp" }
-Set-Alias -Name up -Value Update-Profile
-
 Function Install-Profile {
     param(
         [Parameter(Position = 0, Mandatory = $true)]
@@ -479,7 +367,107 @@ Function Install-Profile {
         }
     }
 }
+Function Load-Profile {
+    [CmdletBinding()]
+    param(
+        [Parameter(Position = 0)]
+        [string] $name,
+        [switch] $quiet,
 
+        [Parameter(Mandatory = $false, ValueFromRemainingArguments)]
+        $remainingArgs
+    )
+
+    BEGIN {
+
+        Function Get-PwshExpression {
+            param([string]$path)
+
+            ## Using [IO.File]::ReadAllText() instead of Get-Content -Raw for performance purposes
+
+            $content = [IO.File]::ReadAllText($path)
+            $content = $content -replace "(?<!\-)[Ff]unction\ +([A-Za-z]+)", 'Function global:$1'
+            $content = $content -replace "[Ss][Ee][Tt]\-[Aa][Ll][Ii][Aa][Ss]\ +(.*)", 'Set-Alias -Scope Global $1'
+
+            Write-Output $content
+        }
+
+        Function Get-CachedPowerShellProfile {
+            [CmdletBinding()]
+            param( [string]$name, [switch]$quiet )
+
+            ## Using [IO.File]::Exists() and [IO.Directory]::Exists() instead of Test-Path for performance purposes
+            ## Using [IO.File]::GetLastWriteTime() instead of (Get-Item -Path).LastWriteTimeUtc for performance purposes
+            ## Using [IO.Path]::Combine() instead of Join-Path for performance purposes
+
+            BEGIN {
+                $cachedProfilesFolder = Get-CachedPowerShellProfileFolder
+
+                $pattern = (Split-Path $profile -Leaf)
+                $cachedProfileName = $pattern.Replace("profile", "$name-profile")
+
+                Function New-CachedPowerShellProfile {
+                    Write-Verbose "Creating cached PowerShell profile '$name'"
+                    $newProfile = [IO.Path]::Combine($cachedProfilesFolder, $cachedProfileName)
+                    Set-Content -Path $newProfile -Value (Get-PwshExpression -Path $originalProfile)
+                    Write-Output $newProfile
+                }
+            }
+
+            PROCESS {
+                $originalProfile = Get-Profile -Name $name
+                if (-not $originalProfile -or (-not ([IO.File]::Exists($originalProfile)))) {
+                    if (-not $quiet.IsPresent) {
+                        Write-Host "No such profile '$name'." -ForegroundColor Magenta
+                    }
+                    return
+                }
+                $cachedProfile = Get-Profile -Name $name -Folder $cachedProfilesFolder
+                
+                if ($cachedProfile -and ([IO.File]::Exists($cachedProfile))) {
+                    Write-Verbose "Cached PowerShell profile '$name' exists."
+                    $originalProfileTimestamp = [IO.File]::GetLastWriteTime($originalProfile)
+                    $cachedProfileTimestamp = [IO.File]::GetLastWriteTime($cachedProfile)
+                    if ($originalProfileTimeStamp -gt $cachedProfileTimestamp) {
+                        Write-Verbose "Cached PowerShell profile is obsolete. Replacing..."
+                        $cachedProfile = New-CachedPowerShellProfile
+                    }
+                }
+                else {
+                    Write-Verbose "Cached PowerShell profile '$name' does not exist."
+                    $cachedProfile = New-CachedPowerShellProfile
+                }
+
+                Write-Output $cachedProfile
+            }
+        }
+    }
+
+    PROCESS {
+
+        $powerShellProfile = Get-CachedPowerShellProfile -Name $name -Quiet:$quiet
+
+        if ($powerShellProfile -and ([IO.File]::Exists($powerShellProfile))) {
+            if (-not $quiet.IsPresent) {
+                Write-Host "Loading $name profile." -ForegroundColor Gray
+            }
+            $expression = ". `"$powerShellProfile`" $remainingArgs"
+            Invoke-Expression -Command $expression
+        }
+
+        CheckFor-UpdateProfile -Name $name
+    }
+}
+
+Set-Alias -Name lp -Value Load-Profile
+
+Function Remove-DefaultProfile {
+    $___profile = Get-DefaultProfile
+    if (Test-Path $___profile) { 
+        Write-Host "Removing default profile file." -ForegroundColor Yellow
+        Remove-Item $___profile -Force
+    }
+}
 Function Set-LastUpdatedProfile {
     [CmdletBinding()]
     param( [string]$name = "", [DateTime]$dateTime = [DateTime]::UtcNow )
@@ -493,6 +481,15 @@ Function Set-LastUpdatedProfile {
         -Path $cachedProfileUpdateFile `
         -Value $timestamp
 }
+Function Update-Profile {
+    param ( [string]$name = "", [switch]$reload )
+    Download-Profile -Name $name -Force -Load:$reload
+    Set-LastUpdatedProfile -Name $name
+}
+
+$hasAlias = [bool] (Get-Alias -Name lp |? { $_.ResolvedCommand.Name -eq "Out-Printer"  })
+if ($hasAlias) { Remove-Item -Path "alias:\lp" }
+Set-Alias -Name up -Value Update-Profile
 
 ## 
 
