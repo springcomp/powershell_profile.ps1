@@ -1,4 +1,4 @@
-# 1.0.7896.17065
+# 1.0.7896.18076
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -362,12 +362,8 @@ Function Download-Profile {
 
     BEGIN {
 
-        $template = "Microsoft.PowerShell_%{NAME}%profile.ps1"
-        $address = "https://raw.githubusercontent.com/springcomp/powershell_profile.ps1/master/"
-        $fileName = Split-Path $profile -Leaf
-        if ($name -ne ""){ $fileName = $fileName.Replace("profile", "$name-profile") }
-        $uri = "$($address)$($fileName)"
-        $destination = Join-Path -Path (Split-Path $profile) -ChildPath $fileName
+        $uri = Get-Profile -Name $name -Remote
+        $destination = Get-Profile -Name $name
 
         Write-Host $uri
         Write-Host $destination
