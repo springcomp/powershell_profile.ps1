@@ -1,4 +1,4 @@
-# 1.0.7896.18076
+# 1.0.7896.18146
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -171,42 +171,42 @@ Function Get-Profile {
         Write-Output $profilePath
     }
 }             
+Function Get-VersionProfile {
+    [CmdletBinding()]
+    param( [string]$name, [switch]$remote )
+
+    if ($remote.IsPresent) {
+    
+        $address = Get-Profile -Name $name -Remote
+        if (-not $address) { return "0.0.0000.00000" }
+    
+        $line = (irm -Method Get -Uri $address).Split("`n") |`
+            Select-Object -First 1
+    }
+    else {
+    
+        $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
+        $cachedProfile = Get-Profile -Name $name -Folder $cachedProfilesFolder
+        if (-not ([IO.File]::Exists($cachedProfile))) { return "0.0.0000.00000" }
+    
+        $line = Get-Content -Path $cachedProfile |`
+            Select-Object -First 1
+    }
+
+    $pattern = "^#\s*(?<ver>\d+\.\d+(?:\.\d{4}){2}\d)\s*`$"
+    $matches = ($line -match $pattern)
+    if (-not ($line -match $pattern)) {
+        return "0.0.0000.00000"
+    }
+
+    return $matches["ver"]
+}
+
 Function CheckFor-UpdateProfile {
     [CmdletBinding()]
     param( [string]$name = "" )
 
     BEGIN {
-
-        Function Get-Version {
-            [CmdletBinding()]
-            param( [string]$name, [switch]$remote )
-        
-            if ($remote.IsPresent) {
-            
-                $address = Get-Profile -Name $name -Remote
-                if (-not $address) { return "0.0.0000.00000" }
-            
-                $line = (irm -Method Get -Uri $address).Split("`n") |`
-                    Select-Object -First 1
-            }
-            else {
-            
-                $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
-                $cachedProfile = Get-Profile -Name $name -Folder $cachedProfilesFolder
-                if (-not ([IO.File]::Exists($cachedProfile))) { return "0.0.0000.00000" }
-            
-                $line = Get-Content -Path $cachedProfile |`
-                    Select-Object -First 1
-            }
-        
-            $pattern = "^#\s*(?<ver>\d+\.\d+(?:\.\d{4}){2}\d)\s*`$"
-            $matches = ($line -match $pattern)
-            if (-not ($line -match $pattern)) {
-                return "0.0.0000.00000"
-            }
-        
-             return $matches["ver"]
-        }
 
         Function Get-LastUpdated {
             [CmdletBinding()]
@@ -238,8 +238,8 @@ Function CheckFor-UpdateProfile {
             $lastUpdated = Get-LastUpdated -Name $name
             $now = (Get-Date).ToUniversalTime()
             if (($now - $lastUpdated).TotalDays -gt $CHECK_FOR_UPDATES_FREQUENCY_IN_DAYS) {
-                $version = Get-Version -Name $name
-                $remoteVer = Get-Version -Name $name -Remote
+                $version = Get-VersionProfile -Name $name
+                $remoteVer = Get-VersionProfile -Name $name -Remote
                 return ($remoteVer -gt $version)
             }
 
@@ -482,12 +482,12 @@ Function Install-Profile {
 
 Function Set-LastUpdatedProfile {
     [CmdletBinding()]
-    param( [string]$name = "" )
+    param( [string]$name = "", [DateTime]$dateTime = [DateTime]::UtcNow )
     
     $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
     $cachedProfileUpdateFile = [IO.Path]::Combine($cachedProfilesFolder, "$($name)_update.txt")
     
-    $timestamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ")
+    $timestamp = $dateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ")
     
     Set-Content `
         -Path $cachedProfileUpdateFile `
