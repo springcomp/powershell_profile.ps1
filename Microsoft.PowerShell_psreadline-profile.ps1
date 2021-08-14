@@ -18,6 +18,9 @@ if ($psReadLineVersion -gt 210) {
 
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
 
+Set-PSReadLineKeyHandler -Chord "Ctrl+r" -ViMode Insert -Function ReverseSearchHistory
+Set-PSReadLineKeyHandler -Chord "Ctrl+s" -ViMode Insert -Function ForwardSearchHistory
+
 ## As a matter of habit, remap $ and _ keys from French AZERTY layout
 ## to the new keys from the French AZERTY-NF layout
 
