@@ -1,4 +1,4 @@
-# 1.0.7896.27263
+# 1.0.7896.27357
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -520,7 +520,10 @@ Function Load-Profile {
     }
 }
 
-##Set-Alias -Name lp -Value Load-Profile
+# Windows PowerShell (5.x) has conflicting alias "lp" for "Out-Printer"
+$hasAlias = [bool] (Get-Alias -Name lp |? { $_.ResolvedCommand.Name -eq "Out-Printer"  })
+if ($hasAlias) { Remove-Item -Path "alias:\lp" }
+Set-Alias -Name up -Value Update-Profile
 
 Function Remove-DefaultProfile {
     $___profile = Get-DefaultProfile
@@ -547,10 +550,6 @@ Function Update-Profile {
     Download-Profile -Name $name -Force -Load:$reload
     Set-LastUpdatedProfile -Name $name
 }
-
-$hasAlias = [bool] (Get-Alias -Name lp |? { $_.ResolvedCommand.Name -eq "Out-Printer"  })
-if ($hasAlias) { Remove-Item -Path "alias:\lp" }
-Set-Alias -Name up -Value Update-Profile
 
 ## 
 
