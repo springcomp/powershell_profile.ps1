@@ -1,4 +1,4 @@
-# 1.0.7896.27041
+# 1.0.7896.27154
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -549,4 +549,5 @@ Set-Alias -Name up -Value Update-Profile
 
 ## 
 
+CheckFor-ProfileUpdate
 Load-Profile "profiles" -Quiet
