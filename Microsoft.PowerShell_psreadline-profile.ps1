@@ -1,7 +1,9 @@
+# 1.0.7896.18224
+
 Set-PSReadLineOption -EditMode Vi
 
 $psReadLineVersion = [int]"$((Get-Module PSReadLine).Version.ToString())".Replace(".", "")
-if ($psReadLineVersion -gt 210) {
+if ($psReadLineVersion -ge 210) {
     $promptChar = [char]0xe0b0
     $options = @{
         PromptText = `
