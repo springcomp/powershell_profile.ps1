@@ -1,4 +1,4 @@
-# 1.0.7896.26708
+# 1.0.7896.27041
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -456,13 +456,10 @@ Function Load-Profile {
             ## Using [IO.Path]::Combine() instead of Join-Path for performance purposes
 
             BEGIN {
-                $cachedProfilesFolder = Get-CachedPowerShellProfileFolder
-                $cachedProfilePath = Get-ProfilePath `
-                    -Name $name `
-                    -Folder $cachedProfilesFolder
 
                 Function New-CachedPowerShellProfile {
                     param( [string]$friendlyName, [string]$content )
+                    $cachedProfilePath = Get-CachedProfilePath -Name $name
                     Write-Verbose "Creating cached PowerShell profile '$friendlyName'"
                     Write-Verbose "$cachedProfilePath"
                     Set-Content -Path $cachedProfilePath -Value (Get-PwshExpression -Path $content)
@@ -481,7 +478,7 @@ Function Load-Profile {
                     }
                     return
                 }
-                $cachedProfile = Get-Profile -Name $name -Folder $cachedProfilesFolder
+                $cachedProfile = Get-CachedProfile -Name $name
                 
                 if ($cachedProfile -and ([IO.File]::Exists($cachedProfile))) {
                     Write-Verbose "Cached PowerShell profile '$friendlyName' exists."
