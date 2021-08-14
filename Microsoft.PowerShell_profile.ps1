@@ -1,4 +1,4 @@
-# 1.0.7896.20888
+# 1.0.7896.26708
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -98,7 +98,7 @@ Function Add-DirectoryToPath {
 }
 
 ## Well-known profiles script
-Function CheckFor-UpdateProfile {
+Function CheckFor-ProfileUpdate {
     [CmdletBinding()]
     param( [string]$name = "" )
 
@@ -134,8 +134,8 @@ Function CheckFor-UpdateProfile {
             $lastUpdated = Get-LastUpdated -Name $name
             $now = (Get-Date).ToUniversalTime()
             if (($now - $lastUpdated).TotalDays -gt $CHECK_FOR_UPDATES_FREQUENCY_IN_DAYS) {
-                $version = Get-VersionProfile -Name $name
-                $remoteVer = Get-VersionProfile -Name $name -Remote
+                $version = Get-ProfileVersion -Name $name
+                $remoteVer = Get-ProfileVersion -Name $name -Remote
                 return ($remoteVer -gt $version)
             }
 
@@ -145,7 +145,9 @@ Function CheckFor-UpdateProfile {
 
     PROCESS {
         if (Needs-Update -Name $name) {
-            Write-Host "Profile '$name' has new version. Type 'update-profile $name -reload' to update." -ForegroundColor Yellow
+            $_n = "Profile '$name' "; $_a = "$name "
+            if (-not $name) { $_n = "Main profile "; $_a = "" }
+            Write-Host "$($_n)has new version. Type 'update-profile $($_a)-reload' to update." -ForegroundColor Yellow
         }
     }
 }
@@ -173,7 +175,6 @@ Function Download-Profile {
             Invoke-RestMethod `
                 -Method Get `
                 -Uri $uri `
-                -Headers @{"Cache-Control"="no-cache"} `
                 -OutFile $destination
             
             Write-Host "$destination updated." -ForegroundColor Cyan
@@ -193,6 +194,13 @@ Function Get-CachedPowerShellProfileFolder {
         New-Item -Path $cachedProfilesFolder -ItemType Directory | Out-Null
     }
     return $cachedProfilesFolder
+}
+Function Get-CachedProfile {
+    [CmdletBinding(DefaultParameterSetName = "Path")]
+    param(
+        [string] $name = $null
+    )
+    Get-Profile -Name $name -Folder (Get-CachedPowerShellProfileFolder)
 }
 Function Get-DefaultProfile {
     $___profile = Join-Path -Path (Split-Path -Path $profile -Parent) -ChildPath "profile.ps1"
@@ -220,11 +228,6 @@ Function Get-Profile {
             try { irm -Method HEAD -Uri $uri | Out-Null } catch { return $false }
             return $true
         }
-    
-        $pattern = (Split-Path $profile -Leaf)
-    
-        $template = "Microsoft.PowerShell_%{NAME}%profile.ps1"
-        $address = "https://raw.githubusercontent.com/springcomp/powershell_profile.ps1/master/"
     }
     
     PROCESS {
@@ -233,11 +236,9 @@ Function Get-Profile {
     
         if ($remote.IsPresent) {
     
-            $alternate = $pattern.Replace("profile", "$name-profile")
-            $profilePath = "$($address)$($alternate)"
+            $profilePath = Get-ProfilePath -Name $name -Remote
             if (-not (Test-WebPath -Uri $profilePath)) {
-                $alternate = $pattern.Replace("profile", "$name")
-                $profilePath = "$($address)$($alternate)"
+                $profilePath = Get-ProfilePath -Name $name -Alternate -Remote
                 if (-not (Test-WebPath -Uri $profilePath)) { return }
             }
         }
@@ -245,13 +246,10 @@ Function Get-Profile {
         else {
     
             ## Using [IO.File]::Exists() instead of Test-Path for performance purposes
-            ## Using [IO.Path]::Combine() instead of Join-Path for performance purposes
     
-            $alternate = $pattern.Replace("profile", $name)
-            $profilePath = [IO.Path]::Combine($folder, $alternate)
+            $profilePath = Get-ProfilePath -Name $name -Folder $folder -Alternate
             if (-not ([IO.File]::Exists($profilePath))) {
-                $alternate = $pattern.Replace("profile", "$name-profile")
-                $profilePath = [IO.Path]::Combine($folder, $alternate)
+                $profilePath = Get-ProfilePath -Name $name -Folder $folder
                 if (-not ([IO.File]::Exists($profilePath))) { return }
             }
         }
@@ -259,7 +257,65 @@ Function Get-Profile {
         Write-Output $profilePath
     }
 }             
-Function Get-VersionProfile {
+Function Get-ProfilePath {
+    [CmdletBinding(DefaultParameterSetName = "Path")]
+    param(
+        [Parameter(Mandatory = $false, Position = 0, ParameterSetName = "Path")]
+        [Parameter(Mandatory = $false, Position = 0, ParameterSetName = "Remote")]
+        [string] $name = $null,
+    
+        [Parameter(Mandatory = $false, Position = 1, ParameterSetName = "Path")]
+        [string] $folder = (Split-Path $profile -Parent),
+    
+        [Parameter(ParameterSetName = "Remote")]
+        [switch] $remote,
+
+        [Parameter(ParameterSetName = "Path")]
+        [Parameter(ParameterSetName = "Remote")]
+        [switch] $alternate
+    )
+    
+    BEGIN {
+        $pattern = (Split-Path $profile -Leaf)
+    
+        $template = "Microsoft.PowerShell_%{NAME}%profile.ps1"
+        $address = "https://raw.githubusercontent.com/springcomp/powershell_profile.ps1/master/"
+    }
+
+    PROCESS {
+
+        if (-not $name) { $name = "profile" }
+    
+        if ($remote.IsPresent) {
+
+            if ($alternate.IsPresent) {
+                $fileName = $pattern.Replace("profile", "$name-profile")
+                $profilePath = "$($address)$($fileName)"
+            }
+            else {
+                $fileName = $pattern.Replace("profile", "$name")
+                $profilePath = "$($address)$($fileName)"
+            }
+        }
+    
+        else {
+    
+            ## Using [IO.Path]::Combine() instead of Join-Path for performance purposes
+
+            if ($alternate.IsPresent) {
+                $fileName = $pattern.Replace("profile", $name)
+                $profilePath = [IO.Path]::Combine($folder, $fileName)
+            }
+            else {
+                $fileName = $pattern.Replace("profile", "$name-profile")
+                $profilePath = [IO.Path]::Combine($folder, $fileName)
+            }
+        }
+    
+        Write-Output $profilePath
+    }
+}
+Function Get-ProfileVersion {
     [CmdletBinding()]
     param( [string]$name, [switch]$remote )
 
@@ -273,10 +329,9 @@ Function Get-VersionProfile {
     }
     else {
     
-        $cachedProfile = Get-Profile -Name $name -Folder (Get-CachedPowerShellProfileFolder)
-        if (-not ([IO.File]::Exists($cachedProfile))) { return "0.0.0000.00000" }
-    
-        $line = Get-Content -Path $cachedProfile |`
+        $currentProfile = Get-Profile -Name $name
+        if (-not $currentProfile) { return "0.0.0000.00000" }
+        $line = Get-Content -Path $currentProfile |`
             Select-Object -First 1
     }
 
@@ -402,40 +457,44 @@ Function Load-Profile {
 
             BEGIN {
                 $cachedProfilesFolder = Get-CachedPowerShellProfileFolder
-
-                $pattern = (Split-Path $profile -Leaf)
-                $cachedProfileName = $pattern.Replace("profile", "$name-profile")
+                $cachedProfilePath = Get-ProfilePath `
+                    -Name $name `
+                    -Folder $cachedProfilesFolder
 
                 Function New-CachedPowerShellProfile {
-                    Write-Verbose "Creating cached PowerShell profile '$name'"
-                    $newProfile = [IO.Path]::Combine($cachedProfilesFolder, $cachedProfileName)
-                    Set-Content -Path $newProfile -Value (Get-PwshExpression -Path $originalProfile)
+                    param( [string]$friendlyName, [string]$content )
+                    Write-Verbose "Creating cached PowerShell profile '$friendlyName'"
+                    Write-Verbose "$cachedProfilePath"
+                    Set-Content -Path $cachedProfilePath -Value (Get-PwshExpression -Path $content)
                     Write-Output $newProfile
                 }
+
+                $friendlyName = $name
+                if (-not $name) { $friendlyName = "profile" }
             }
 
             PROCESS {
                 $originalProfile = Get-Profile -Name $name
                 if (-not $originalProfile -or (-not ([IO.File]::Exists($originalProfile)))) {
                     if (-not $quiet.IsPresent) {
-                        Write-Host "No such profile '$name'." -ForegroundColor Magenta
+                        Write-Host "No such profile '$friendlyName'." -ForegroundColor Magenta
                     }
                     return
                 }
                 $cachedProfile = Get-Profile -Name $name -Folder $cachedProfilesFolder
                 
                 if ($cachedProfile -and ([IO.File]::Exists($cachedProfile))) {
-                    Write-Verbose "Cached PowerShell profile '$name' exists."
+                    Write-Verbose "Cached PowerShell profile '$friendlyName' exists."
                     $originalProfileTimestamp = [IO.File]::GetLastWriteTime($originalProfile)
                     $cachedProfileTimestamp = [IO.File]::GetLastWriteTime($cachedProfile)
                     if ($originalProfileTimeStamp -gt $cachedProfileTimestamp) {
                         Write-Verbose "Cached PowerShell profile is obsolete. Replacing..."
-                        $cachedProfile = New-CachedPowerShellProfile
+                        $cachedProfile = New-CachedPowerShellProfile -FriendlyName $friendlyName -Content $originalProfile
                     }
                 }
                 else {
-                    Write-Verbose "Cached PowerShell profile '$name' does not exist."
-                    $cachedProfile = New-CachedPowerShellProfile
+                    Write-Verbose "Cached PowerShell profile '$friendlyName' does not exist."
+                    $cachedProfile = New-CachedPowerShellProfile -FriendlyName $friendlyName -Content $originalProfile
                 }
 
                 Write-Output $cachedProfile
@@ -455,11 +514,11 @@ Function Load-Profile {
             Invoke-Expression -Command $expression
         }
 
-        CheckFor-UpdateProfile -Name $name
+        CheckFor-ProfileUpdate -Name $name
     }
 }
 
-Set-Alias -Name lp -Value Load-Profile
+##Set-Alias -Name lp -Value Load-Profile
 
 Function Remove-DefaultProfile {
     $___profile = Get-DefaultProfile
