@@ -1,3 +1,5 @@
+# 1.0.7896.14583
+
 [CmdletBinding()]
 param( [switch]$completions )
 
