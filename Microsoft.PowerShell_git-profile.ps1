@@ -1,4 +1,4 @@
-# 1.0.7896.14583
+# 1.0.7896.27095
 
 [CmdletBinding()]
 param( [switch]$completions )
@@ -28,8 +28,6 @@ if ($completions.IsPresent) {
         }
     }
 }
-
-$__GIT_HOME | Add-DirectoryToPath
 
 Function add { git add $args }
 Function amend { git commit --amend $args }
