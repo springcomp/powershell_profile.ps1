@@ -1,4 +1,4 @@
-# 1.0.7896.27422
+# 1.0.7914.17472
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -468,7 +468,7 @@ Function Load-Profile {
                     Write-Verbose "Creating cached PowerShell profile '$friendlyName'"
                     Write-Verbose "$cachedProfilePath"
                     Set-Content -Path $cachedProfilePath -Value (Get-PwshExpression -Path $content)
-                    Write-Output $newProfile
+                    Write-Output $cachedProfilePath
                 }
 
                 $friendlyName = $name
