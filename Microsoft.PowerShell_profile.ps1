@@ -1,4 +1,4 @@
-# 1.0.7914.17472
+# 1.0.7920.16825
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -108,9 +108,9 @@ Function CheckFor-ProfileUpdate {
             [CmdletBinding()]
             param( [string]$name )
 
-            $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
-            $cachedProfileUpdateFile = [IO.Path]::Combine($cachedProfilesFolder, "$($name)_update.txt")
+            $cachedProfileUpdateFile = Get-CachedProfileUpdatePath -Name $name
             if (-not ([IO.File]::Exists($cachedProfileUpdateFile))) {
+                Set-LastUpdatedProfile -Name $name
                 return [DateTime]::MinValue
             }
 
@@ -206,6 +206,15 @@ Function Get-CachedProfilePath {
         [string] $name = $null
     )
     Get-ProfilePath -Name $name -Folder (Get-CachedPowerShellProfileFolder)
+}
+Function Get-CachedProfileUpdatePath {
+    param(
+        [string] $name = $null
+    )
+    $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
+    $cachedProfileUpdateFile = [IO.Path]::Combine($cachedProfilesFolder, "$($name)_update.txt")
+
+    return $cachedProfileUpdateFile
 }
 Function Get-DefaultProfile {
     $___profile = Join-Path -Path (Split-Path -Path $profile -Parent) -ChildPath "profile.ps1"
@@ -535,9 +544,7 @@ Function Set-LastUpdatedProfile {
     [CmdletBinding()]
     param( [string]$name = "", [DateTime]$dateTime = [DateTime]::UtcNow )
     
-    $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
-    $cachedProfileUpdateFile = [IO.Path]::Combine($cachedProfilesFolder, "$($name)_update.txt")
-    
+    $cachedProfileUpdateFile = Get-CachedProfileUpdatePath -Name $name
     $timestamp = $dateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ")
     
     Set-Content `
