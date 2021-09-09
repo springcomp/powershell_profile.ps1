@@ -1,4 +1,4 @@
-# 1.0.7920.16825
+# 1.0.7922.25145
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -108,9 +108,11 @@ Function CheckFor-ProfileUpdate {
             [CmdletBinding()]
             param( [string]$name )
 
+            Write-Verbose "Checking whether cached profile update file for $name exists."
+
             $cachedProfileUpdateFile = Get-CachedProfileUpdatePath -Name $name
             if (-not ([IO.File]::Exists($cachedProfileUpdateFile))) {
-                Set-LastUpdatedProfile -Name $name
+                Write-Verbose "Cached profile update file does not exist."
                 return [DateTime]::MinValue
             }
 
@@ -119,6 +121,7 @@ Function CheckFor-ProfileUpdate {
 
             $pattern = "\s*(?<ts>\d{4}(?:\-\d{2}){2}T\d{2}(?::\d{2}){2}\.\d{7}Z)\s*`$"
             if (-not ($line -match $pattern)) {
+                Write-Verbose "Cached profile update file does not contain a date/time pattern."
                 return [DateTime]::MinValue
             }
 
@@ -133,10 +136,23 @@ Function CheckFor-ProfileUpdate {
 
             $lastUpdated = Get-LastUpdated -Name $name
             $now = (Get-Date).ToUniversalTime()
+
+            Write-Verbose "$($name): Last updated: $lastUpdated; Now: $now."
+            Write-Verbose "$($name): Last updated: $(($now - $lastUpdated).TotalDays) days ago."
+
             if (($now - $lastUpdated).TotalDays -gt $CHECK_FOR_UPDATES_FREQUENCY_IN_DAYS) {
                 $version = Get-ProfileVersion -Name $name
                 $remoteVer = Get-ProfileVersion -Name $name -Remote
-                return ($remoteVer -gt $version)
+                Write-Verbose "Checking timestamp for profile $name."
+                Write-Verbose "Local version: $version; Remote version: $remoteVer"
+                $needsUpdate = ($remoteVer -gt $version)
+                if (-not $needsUpdate){
+                    Write-Verbose "Updating last update check timestamp for profile $name."
+                    Set-LastUpdatedProfile -Name $name
+                }
+                return $needsUpdate
+            } else {
+                Write-Verbose "Skipped checking for updates for profile $name."
             }
 
             return $false
@@ -239,7 +255,7 @@ Function Get-Profile {
         Function Test-WebPath {
             param( [string]$uri )
     
-            try { irm -Method HEAD -Uri $uri | Out-Null } catch { return $false }
+            try { irm -Method HEAD -Uri $uri -Verbose:$false | Out-Null } catch { return $false }
             return $true
         }
     }
@@ -338,7 +354,7 @@ Function Get-ProfileVersion {
         $address = Get-Profile -Name $name -Remote
         if (-not $address) { return "0.0.0000.00000" }
     
-        $line = (irm -Method Get -Uri $address).Split("`n") |`
+        $line = (irm -Method Get -Uri $address -Verbose:$false).Split("`n") |`
             Select-Object -First 1
     }
     else {
