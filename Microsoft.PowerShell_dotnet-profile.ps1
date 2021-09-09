@@ -9,7 +9,7 @@ param( [switch] $completions )
 
 if ($completions.IsPresent) {
 
-    Write-Host "Loading dotnet completions." -Foreground Darkgray 
+    Write-Host "Loading CLI completions for dotnet." -Foreground Darkgray 
 
     # PowerShell parameter completion shim for the dotnet CLI 
     Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
