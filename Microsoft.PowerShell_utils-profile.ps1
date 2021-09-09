@@ -1,4 +1,4 @@
-# 1.0.7922.22381
+# 1.0.7922.22524
 
 Function c {
     param([string] $path = ".")
@@ -80,7 +80,7 @@ Function servicebus { & 'C:\Portable Apps\ServiceBus Explorer\ServiceBusExplorer
 Set-Alias -Name sbex -Value servicebus
 
 Function Upgrade-PowerShell {
-    $has = (Get-Process -Name "pwsh" | Select-Object -First 1)
+    $has = (Get-Process -Name "pwsh" -EA SilentlyContinue | Select-Object -First 1)
     if (-not $has) {
         Remove-Item -Path "$Env:LOCALAPPDATA\Microsoft\powershell-daily" -Recurse -Force -EA SilentlyContinue
         Invoke-Expression "& { $(Invoke-RestMethod 'https://aka.ms/install-powershell.ps1') } -daily"
