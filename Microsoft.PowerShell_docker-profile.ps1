@@ -1,3 +1,5 @@
+# 1.0.7922.31826
+
 [CmdletBinding()]
 param( [switch]$completions )
 
@@ -11,15 +13,18 @@ if ($completions.IsPresent) {
 
     ## CLI completions require Git bash
 
-    "$Env:LOCALAPPDATA\programs\git\bin" | Add-DirectoryToPath -Prepend
+    $__GIT_HOME="$Env:LOCALAPPDATA\programs\git\bin"
+    $__GIT_HOME | Add-DirectoryToPath -Prepend
 
-    ## Install-Module DockerCompletion -Scope CurrentUser
+    Function Install-KubeCompletion {
+        Install-Module DockerCompletion -Scope CurrentUser -Force
+        Install-Module -Name PSBashCompletions -Scope CurrentUser -Force
+        $completionsPath = Join-Path (Split-Path -Parent $PROFILE) Completions
+        ((kubectl completion bash) -join "`n") | Set-Content -Encoding ASCII -NoNewline -Path $path/kubectl.sh
+        ((helm completion bash) -join "`n") | Set-Content -Encoding ASCII -NoNewline -Path $path/helm.sh
+    }
+
     Import-Module DockerCompletion
-
-    ## Install-Module -Name PSBashCompletions -Scope CurrentUser
-    ## $path = (mkdir (Join-Path (Split-Path -Parent $PROFILE) Completions)).FullName
-    ## ((kubectl completion bash) -join "`n") | Set-Content -Encoding ASCII -NoNewline -Path $path/kubectl.sh
-    ## ((helm completion bash) -join "`n") | Set-Content -Encoding ASCII -NoNewline -Path $path/helm.sh
 
     $completionsPath = Join-Path (Split-Path -Parent $PROFILE) Completions
     if (Test-Path $completionsPath) {
