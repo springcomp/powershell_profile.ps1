@@ -1,3 +1,5 @@
+# 1.0.7922.31522
+
 [CmdletBinding()]
 param( [switch] $completions )
 
@@ -6,6 +8,9 @@ param( [switch] $completions )
     "C:\Portable Apps\IlSpy" | Add-DirectoryToPath
 
 if ($completions.IsPresent) {
+
+    Write-Host "Loading dotnet completions." -Foreground Darkgray 
+
     # PowerShell parameter completion shim for the dotnet CLI 
     Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
         param($commandName, $wordToComplete, $cursorPosition)
