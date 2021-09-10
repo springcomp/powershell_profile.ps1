@@ -32,7 +32,11 @@ if ($completions.IsPresent) {
     }
 
     $completionsPath = Join-Path (Split-Path -Parent $PROFILE) Completions
-    if ((-not (Has-Module DockerCompletion)) -or (-not (Has-Module PSBashCompletions)) -or (-not (Test-Path $completionsPath))) {
+    if (    (-not (Has-Module DockerCompletion)) `
+        -or (-not (Has-Module PSBashCompletions)) `
+        -or (-not (Test-Path $completionsPath/kubectl.sh)) `
+        -or (-not (Test-Path $completionsPath/helm.sh))
+        ) {
         Install-KubeCompletion -Completions $completionsPath
     }
 
