@@ -1,4 +1,4 @@
-# 1.0.7923.22249
+# 1.0.7923.22619
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -395,7 +395,8 @@ Function Install-Profile {
             )
             $nextState = $state
             if (($state -eq 0) -and ($line -match "## Load useful profiles")) { $nextState = 1 }
-            if (($state -eq 1) -and ($line -match "## SECURITY - SENSITIVE DATA")) { $nextState = 2 }
+            if (($state -eq 1) -and ($line -match "")) { $nextState = 2 }
+            if (($state -eq 2) -and ($line -match "## SECURITY - SENSITIVE DATA")) { $nextState = 3 }
             Write-Output $nextState
         }
 
@@ -415,10 +416,18 @@ Function Install-Profile {
                         $before += $line
                     }
                     1 {
-                        if ($nextState -eq 2) { $after += $line }
-                        else { $content += $line }
+                        $before += $line
                     }
                     2 {
+                        if ($line.Length -gt 0) {
+                            if ($nextState -eq 3) {
+                                $after += ""
+                                $after += $line
+                            }
+                            else { $content += $line }
+                        }
+                    }
+                    3 {
                         $after += $line
                     }
                 }
@@ -444,6 +453,11 @@ Function Install-Profile {
             Update-Profile -Name $name -Reload:$load
 
             $lines = Get-LoadedProfiles 
+
+            # $lines[0] is $before
+            # $lines[1] is $content
+            # $lines[2] is $after
+
             $lines[1] += $newLine
             $lines[1] = $lines[1] | Sort-Object
 
