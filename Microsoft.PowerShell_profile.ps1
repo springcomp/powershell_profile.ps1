@@ -1,4 +1,4 @@
-# 1.0.7922.31489
+# 1.0.7923.22249
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -179,7 +179,7 @@ Function Download-Profile {
     BEGIN {
 
         $uri = Get-Profile -Name $name -Remote
-        $destination = Get-Profile -Name $name
+        $destination = Get-ProfilePath -Name $name
 
         Write-Host $uri
         Write-Host $destination
