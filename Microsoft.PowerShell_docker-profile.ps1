@@ -1,4 +1,4 @@
-# 1.0.7922.31826
+# 1.0.7923.17557
 
 [CmdletBinding()]
 param( [switch]$completions )
@@ -16,17 +16,28 @@ if ($completions.IsPresent) {
     $__GIT_HOME="$Env:LOCALAPPDATA\programs\git\bin"
     $__GIT_HOME | Add-DirectoryToPath -Prepend
 
+    Function Has-Module {
+        param([string]$name)
+        return [bool] (Get-Module -ListAvailable -Name $name)
+    }
+
     Function Install-KubeCompletion {
+        [CmdletBinding()]
+        param([Alias("CompletionsPath")][string]$path)
         Install-Module DockerCompletion -Scope CurrentUser -Force
         Install-Module -Name PSBashCompletions -Scope CurrentUser -Force
-        $completionsPath = Join-Path (Split-Path -Parent $PROFILE) Completions
+        New-Item -Path $path -ItemType Directory -EA SilentlyContinue | Out-Null
         ((kubectl completion bash) -join "`n") | Set-Content -Encoding ASCII -NoNewline -Path $path/kubectl.sh
         ((helm completion bash) -join "`n") | Set-Content -Encoding ASCII -NoNewline -Path $path/helm.sh
     }
 
+    $completionsPath = Join-Path (Split-Path -Parent $PROFILE) Completions
+    if ((-not (Has-Module DockerCompletion)) -or (-not (Has-Module PSBashCompletions)) -or (-not (Test-Path $completionsPath))) {
+        Install-KubeCompletion -Completions $completionsPath
+    }
+
     Import-Module DockerCompletion
 
-    $completionsPath = Join-Path (Split-Path -Parent $PROFILE) Completions
     if (Test-Path $completionsPath) {
         Import-Module PSBashCompletions
         Register-BashArgumentCompleter kubectl "$completionsPath/kubectl.sh"
