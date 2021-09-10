@@ -1,4 +1,4 @@
-# 1.0.7923.22619
+# 1.0.7923.28054
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -160,7 +160,7 @@ Function CheckFor-ProfileUpdate {
     }
 
     PROCESS {
-        if (Needs-Update -Name $name) {
+        if (($name -ne "profiles") -and (Needs-Update -Name $name)) {
             $_n = "Profile '$name' "; $_a = "$name "
             if (-not $name) { $_n = "Main profile "; $_a = "" }
             Write-Host "$($_n)has new version. Type 'update-profile $($_a)-reload' to update." -ForegroundColor Yellow
@@ -522,6 +522,11 @@ Function Load-Profile {
                     }
                     return
                 }
+
+                if ($name -eq "profiles") {
+                    return (Get-ProfilePath -Name $name)
+                }
+
                 $cachedProfile = Get-CachedProfile -Name $name
                 
                 if ($cachedProfile -and ([IO.File]::Exists($cachedProfile))) {
