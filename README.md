@@ -6,7 +6,7 @@ Quickly install with the following command:
 irm https://raw.githubusercontent.com/springcomp/powershell_profile.ps1/master/Microsoft.PowerShell_profile.ps1 -OutFile $profile
 ```
 
-Then open a PowerShell prompt of reload your profile.
+Then open a PowerShell prompt or reload your profile.
 
 ## Customize your prompt with Oh-My-Posh
 
