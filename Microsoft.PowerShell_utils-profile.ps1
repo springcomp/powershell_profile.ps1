@@ -1,4 +1,4 @@
-# 1.0.7922.22524
+# 1.0.7930.15673
 
 Function c {
     param([string] $path = ".")
@@ -37,6 +37,13 @@ Set-Alias -Name gcv -Value Get-CurrentVersion
 Function izarc { & 'C:\Portable Apps\IZarc2Go\IZArc2Go.exe' }
 Function keepass { & 'C:\Portable Apps\KeePass\KeePass.exe' }
 Set-Alias -Name kp -Value keepass
+
+Function mkcdir {
+    param([string]$path)
+    if (-not $path) { return }
+    New-Item -Path $path -ItemType Directory -EA SilentlyContinue | Out-Null
+    if (Test-Path -Path $path) { Set-Location -Path $path }
+}
 
 Function rmf {
     [CmdletBinding()]
