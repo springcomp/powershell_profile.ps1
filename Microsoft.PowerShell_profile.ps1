@@ -1,4 +1,4 @@
-# 1.0.7923.29546
+# 1.0.7931.32014
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -217,7 +217,8 @@ Function Download-Profile {
     }
 }
 Function Get-CachedPowerShellProfileFolder {
-    $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
+    $tempFolder = $Env:TEMP; if ($PSVersionTable.Platform -ne "Win32NT") { $tempFolder = "/tmp" }
+    $cachedProfilesFolder = [IO.Path]::Combine($tempFolder, "PowerShell_profiles")
     if (-not ([IO.Directory]::Exists($cachedProfilesFolder))) {
         New-Item -Path $cachedProfilesFolder -ItemType Directory | Out-Null
     }
@@ -239,7 +240,7 @@ Function Get-CachedProfileUpdatePath {
     param(
         [string] $name = $null
     )
-    $cachedProfilesFolder = [IO.Path]::Combine($Env:TEMP, "PowerShell_profiles")
+    $cachedProfilesFolder = Get-CachedPowerShellProfileFolder
     $cachedProfileUpdateFile = [IO.Path]::Combine($cachedProfilesFolder, "$($name)_update.txt")
 
     return $cachedProfileUpdateFile
