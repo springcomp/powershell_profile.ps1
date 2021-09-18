@@ -1,9 +1,9 @@
-# 1.0.7923.18394
+# 1.0.7931.32339
 
 [CmdletBinding()]
 param( [switch]$completions )
 
-$__GIT_HOME="$Env:LOCALAPPDATA\programs\git\bin"
+$__GIT_HOME=Join-Path -Path (Split-Path (Split-Path -Path (Get-Command "git").Source)) -ChildPath "bin"
 
 if ($completions.IsPresent) {
 
