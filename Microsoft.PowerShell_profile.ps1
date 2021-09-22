@@ -1,4 +1,4 @@
-# 1.0.7931.32014
+# 1.0.7935.21290
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -132,7 +132,11 @@ Function CheckFor-ProfileUpdate {
             [CmdletBinding()]
             param( [string]$name )
 
-            $CHECK_FOR_UPDATES_FREQUENCY_IN_DAYS = 1
+            $DEFAULT_CHECK_FOR_UPDATES_FREQUENCY_IN_DAYS = 1
+            $checkForUpdatesFrequencyInDays = $Env:CHECK_FOR_PWSH_PROFILE_UPDATES_FREQUENCY_IN_DAYS
+            if (-not $checkForUpdatesFrequencyInDays) {
+                $checkForUpdatesFrequencyInDays = $DEFAULT_CHECK_FOR_UPDATES_FREQUENCY_IN_DAYS
+            }
 
             $lastUpdated = Get-LastUpdated -Name $name
             $now = (Get-Date).ToUniversalTime()
