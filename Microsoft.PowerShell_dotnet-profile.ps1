@@ -1,4 +1,4 @@
-# 1.0.7922.31522
+# 1.0.7936.15588
 
 [CmdletBinding()]
 param( [switch] $completions )
@@ -23,7 +23,10 @@ if ($completions.IsPresent) {
 $Env:PROJECT_DIRECTORY = Join-Path -Path ([IO.Path]::GetPathRoot($Env:USERPROFILE)) -ChildPath "Projects"
 Function me { Set-Location ([IO.Path]::Combine($Env:PROJECT_DIRECTORY, "springcomp")) }
 Function pro { Set-Location $Env:PROJECT_DIRECTORY }
-Function run-tests { Get-ChildItem -Path $PATH -Recurse -Filter *Tests.csproj | % { dotnet test $_.FullName } }
+Function run-tests {
+    param([string]$pattern = "*Tests.csproj")
+    Get-ChildItem -Path $PATH -Recurse -Filter $pattern | % { dotnet test $_.FullName }
+}
 Function vs {
     [CmdletBinding()]
     param(
