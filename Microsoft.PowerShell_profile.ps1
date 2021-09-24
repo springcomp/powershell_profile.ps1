@@ -1,4 +1,4 @@
-# 1.0.7937.24381
+# 1.0.7937.24830
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -255,6 +255,12 @@ Function Get-CachedProfileUpdatePath {
 Function Get-DefaultProfile {
     $___profile = Join-Path -Path (Split-Path -Path $profile -Parent) -ChildPath "profile.ps1"
     Write-Output $___profile
+}
+Function Get-LoadedProfile {
+    Get-Content -Path (Get-Profile "profiles") |% {
+        $matched = $_ -match "^Load\-Profile `"(?<profile>[^`"]+)`""
+        if ($matched) { $matches["profile"] }
+    }
 }
 Function Get-Profile {
     [CmdletBinding(DefaultParameterSetName = "Path")]
@@ -620,9 +626,27 @@ Function Set-LastUpdatedProfile {
         -Value $timestamp
 }
 Function Update-Profile {
-    param ( [string]$name = "", [switch]$reload )
-    Download-Profile -Name $name -Force -Load:$reload
-    Set-LastUpdatedProfile -Name $name
+    [CmdletBinding(DefaultParameterSetName = "Name")]
+    param (
+        [Parameter(ParameterSetName = "Name")]
+        [string]$name = "",
+        [Parameter(ParameterSetName = "All")]
+        [switch]$all,
+        [switch]$reload
+    )
+
+    if ($all.IsPresent){
+        Get-LoadedProfile |% {
+            $profileName = $_
+            if (CheckFor-ProfileUpdate -Name $profileName) {
+                Update-Profile -Name $profileName -Reload:$reload
+            }
+        }
+    }
+    else {
+        Download-Profile -Name $name -Force -Load:$reload
+        Set-LastUpdatedProfile -Name $name
+    }
 }
 
 ## 
