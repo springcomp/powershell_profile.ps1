@@ -1,4 +1,4 @@
-# 1.0.7935.21290
+# 1.0.7937.23816
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -143,8 +143,10 @@ Function CheckFor-ProfileUpdate {
 
             Write-Verbose "$($name): Last updated: $lastUpdated; Now: $now."
             Write-Verbose "$($name): Last updated: $(($now - $lastUpdated).TotalDays) days ago."
+            Write-Verbose "$($name): Checking for updates every $checkForUpdatesFrequencyInDays days."
+            Write-Verbose "$($name): Do we need to check for updates: $(($now - $lastUpdated).TotalDays -gt $checkForUpdatesFrequencyInDays)."
 
-            if (($now - $lastUpdated).TotalDays -gt $CHECK_FOR_UPDATES_FREQUENCY_IN_DAYS) {
+            if (($now - $lastUpdated).TotalDays -gt $checkForUpdatesFrequencyInDays) {
                 $version = Get-ProfileVersion -Name $name
                 $remoteVer = Get-ProfileVersion -Name $name -Remote
                 Write-Verbose "Checking timestamp for profile $name."
