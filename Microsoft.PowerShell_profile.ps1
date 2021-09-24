@@ -1,4 +1,4 @@
-# 1.0.7937.24064
+# 1.0.7937.24381
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -275,7 +275,9 @@ Function Get-Profile {
         Function Test-WebPath {
             param( [string]$uri )
     
-            try { irm -Method HEAD -Uri $uri -Verbose:$false | Out-Null } catch { return $false }
+            try { irm -Method HEAD -Uri $uri -TimeoutSec 2 -Verbose:$false | Out-Null }
+            catch { return $false }
+
             return $true
         }
     }
@@ -369,29 +371,39 @@ Function Get-ProfileVersion {
     [CmdletBinding()]
     param( [string]$name, [switch]$remote )
 
-    if ($remote.IsPresent) {
-    
-        $address = Get-Profile -Name $name -Remote
-        if (-not $address) { return "0.0.0000.00000" }
-    
-        $line = (irm -Method Get -Uri $address -Verbose:$false).Split("`n") |`
-            Select-Object -First 1
-    }
-    else {
-    
-        $currentProfile = Get-Profile -Name $name
-        if (-not $currentProfile) { return "0.0.0000.00000" }
-        $line = Get-Content -Path $currentProfile |`
-            Select-Object -First 1
+    BEGIN {
+        $DEFAUT_VERSION = "0.0.0000.00000"
     }
 
-    $pattern = "^#\s*(?<ver>\d+\.\d+(?:\.\d{4}){2}\d)\s*`$"
-    $matches = ($line -match $pattern)
-    if (-not ($line -match $pattern)) {
-        return "0.0.0000.00000"
-    }
+    PROCESS {
 
-    return $matches["ver"]
+        if ($remote.IsPresent) {
+        
+            $address = Get-Profile -Name $name -Remote
+            if (-not $address) { return $DEFAULT_VERSION}
+        
+            try {
+                $line = (irm -Method Get -Uri $address -TimeoutSec 2 -Verbose:$false).Split("`n") |`
+                    Select-Object -First 1
+            }
+            catch { return $DEFAULT_VERSION}
+        }
+        else {
+        
+            $currentProfile = Get-Profile -Name $name
+            if (-not $currentProfile) { return $DEFAULT_VERSION}
+            $line = Get-Content -Path $currentProfile |`
+                Select-Object -First 1
+        }
+
+        $pattern = "^#\s*(?<ver>\d+\.\d+(?:\.\d{4}){2}\d)\s*`$"
+        $matches = ($line -match $pattern)
+        if (-not ($line -match $pattern)) {
+            return $DEFAULT_VERSION
+        }
+
+        return $matches["ver"]
+    }
 }
 Function Install-Profile {
     param(
