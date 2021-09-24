@@ -1,4 +1,4 @@
-# 1.0.7937.23816
+# 1.0.7937.24064
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -126,6 +126,7 @@ Function CheckFor-ProfileUpdate {
             }
 
             $timestamp = [DateTime]::Parse($matches["ts"])
+            $timestamp = $timestamp.ToUniversalTime()
             return $timestamp
         }
         Function Needs-Update {
