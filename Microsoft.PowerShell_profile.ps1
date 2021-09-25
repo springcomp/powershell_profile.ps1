@@ -1,4 +1,4 @@
-# 1.0.7938.15283
+# 1.0.7938.16407
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -639,7 +639,7 @@ Function Set-LastUpdatedProfile {
 Function Update-Profile {
     [CmdletBinding(DefaultParameterSetName = "Name")]
     param (
-        [Parameter(ParameterSetName = "Name")]
+        [Parameter(ParameterSetName = "Name", Position = 0)]
         [string]$name = "",
         [Parameter(ParameterSetName = "All")]
         [switch]$all,
