@@ -1,4 +1,4 @@
-# 1.0.7937.24830
+# 1.0.7938.15283
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -202,15 +202,26 @@ Function Download-Profile {
 
         Write-Host $uri
         Write-Host $destination
-
     }
     PROCESS {
 
+        if (-not $uri) {
+            Write-Host "No such profile '$name'." -ForegroundColor Yellow
+            return
+        }
+
         if (-not (Test-Path $destination) -or $force.IsPresent) {
-            Invoke-RestMethod `
-                -Method Get `
-                -Uri $uri `
-                -OutFile $destination
+            try {
+                Invoke-RestMethod `
+                    -Method Get `
+                    -TimeoutSec 2 `
+                    -Uri $uri `
+                    -OutFile $destination
+            }
+            catch {
+                Write-Host $_.Exception.Message -ForegroundColor Yellow
+                return
+            }
             
             Write-Host "$destination updated." -ForegroundColor Cyan
 
@@ -632,13 +643,15 @@ Function Update-Profile {
         [string]$name = "",
         [Parameter(ParameterSetName = "All")]
         [switch]$all,
+        [Parameter(ParameterSetName = "All")]
+        [switch]$force,
         [switch]$reload
     )
 
     if ($all.IsPresent){
         Get-LoadedProfile |% {
             $profileName = $_
-            if (CheckFor-ProfileUpdate -Name $profileName) {
+            if ($force.IsPresent -or (CheckFor-ProfileUpdate -Name $profileName)) {
                 Update-Profile -Name $profileName -Reload:$reload
             }
         }
