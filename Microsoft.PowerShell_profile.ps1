@@ -1,4 +1,4 @@
-# 1.0.7938.16407
+# 1.0.7939.21321
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -171,7 +171,11 @@ Function CheckFor-ProfileUpdate {
             $_n = "Profile '$name' "; $_a = "$name "
             if (-not $name) { $_n = "Main profile "; $_a = "" }
             Write-Host "$($_n)has new version. Type 'update-profile $($_a)-reload' to update." -ForegroundColor Yellow
+
+            return $true
         }
+
+        return $false
     }
 }
 Function Download-Profile {
@@ -609,7 +613,7 @@ Function Load-Profile {
             Invoke-Expression -Command $expression
         }
 
-        CheckFor-ProfileUpdate -Name $name
+        CheckFor-ProfileUpdate -Name $name | Out-Null
     }
 }
 
@@ -664,5 +668,5 @@ Function Update-Profile {
 
 ## 
 
-CheckFor-ProfileUpdate
+CheckFor-ProfileUpdate | Out-Null
 Load-Profile "profiles" -Quiet
