@@ -1,4 +1,4 @@
-# 1.0.7930.15673
+# 1.0.7942.20999
 
 Function c {
     param([string] $path = ".")
@@ -56,7 +56,8 @@ Function rmf {
     Remove-Item `
         -Path $path `
         -Recurse `
-        -Force 
+        -Force `
+        -EA SilentlyContinue
 }
 Function Search-Item {
     [CmdletBinding()]
