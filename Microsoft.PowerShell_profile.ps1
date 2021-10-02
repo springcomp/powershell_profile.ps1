@@ -1,4 +1,4 @@
-# 1.0.7945.33953
+# 1.0.7945.36516
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -120,5 +120,5 @@ if (-not (Get-Module -Name Pwsh-Profile -ListAvailable)) {
     return
 }
 
-CheckFor-ProfileUpdate
+CheckFor-ProfileUpdate | Out-Null
 Load-Profile "profiles" -Quiet
