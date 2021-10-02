@@ -8,6 +8,12 @@ irm https://raw.githubusercontent.com/springcomp/powershell_profile.ps1/master/M
 
 Then open a PowerShell prompt or reload your profile.
 
+**Note**: Starting from version 1.0.7945, all functions from the main profile script has been moved to the [Pwsh-Profile](https://www.powershellgallery.com/packages?q=Pwsh-Profile) PowerShell module. A warning will instruct you to install this module if not already done, using the following command:
+
+```pwsh
+Install-Module -Name Pwsh-Profile -Repository PSGallery -Scope CurrentUser -Force
+```
+
 ## Customize your prompt with Oh-My-Posh
 
 ```pwsh
@@ -52,9 +58,14 @@ The default `Microsoft.PowerShell_profile.ps1` script imports the following Cmdl
 |Script|Description|
 |---|---|
 |`Add-DirectoryToPath`|Adds a directory to the `$Env:PATH` variable.|
+
+Starting from version 1.0.7945, all functions from the main profile script has been moved to the [Pwsh-Profile](https://www.powershellgallery.com/packages?q=Pwsh-Profile) PowerShell module that exports the following CmdLets:
+
+|Script|Description|
+|---|---|
 |`CheckFor-ProfileUpdate`|Checks the version numbers from the specified local profile and its corresponding remote profile script.|
 |`Download-Profile`|Download the corresponding specified remote profile script locally.|
-|`Get-CachedPowerShellProfileFolder`|Returns the `$Env:TEMP\PowerShell_profiles` folder path.|
+|`Get-CachedPowerShellProfileFolder`|Returns a temporary folder that contains cached profiles. Maps to `$Env:TEMP\PowerShell_profiles` on Windows and `/tmp/PowerShell_profiles` on other systems.|
 |`Get-CachedProfile`|Returns the path to the cached version of the specified profile if it exists.|
 |`Get-CachedProfilePath`|Returns the path to the cached version of the specified profile. The corresponding profile may not exist.|
 |`Get-Profile`|Returns the path to the specified profile if it exists.|
