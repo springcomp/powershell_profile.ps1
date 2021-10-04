@@ -92,7 +92,7 @@ Function Load-Profile {
             Invoke-Expression -Command $expression
         }
 
-        CheckFor-ProfileUpdate -Name $name
+        CheckFor-ProfileUpdate -Name $name | Out-Null
     }
 }
 

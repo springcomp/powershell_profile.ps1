@@ -71,6 +71,10 @@ Function CheckFor-ProfileUpdate {
             $_n = "Profile '$name' "; $_a = "$name "
             if (-not $name) { $_n = "Main profile "; $_a = "" }
             Write-Host "$($_n)has new version. Type 'update-profile $($_a)-reload' to update." -ForegroundColor Yellow
+
+            return $true
         }
+
+        return $false
     }
 }
