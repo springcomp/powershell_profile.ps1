@@ -1,7 +1,13 @@
-# 1.0.7942.20999
+# 1.0.7950.32997
 
 Function c {
-    param([string] $path = ".")
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Alias("PSPath")]
+        [Alias("FullName")]
+        [string] $path = "."
+    )
     . code $path
 }
 Function ccv { Get-CurrentVersion | clipp }
@@ -53,11 +59,13 @@ Function rmf {
         [Alias("FullName")]
         [string]$path
     )
-    Remove-Item `
-        -Path $path `
-        -Recurse `
-        -Force `
-        -EA SilentlyContinue
+    PROCESS {
+        Remove-Item `
+            -Path $path `
+            -Recurse `
+            -Force `
+            -EA SilentlyContinue
+    }
 }
 Function Search-Item {
     [CmdletBinding()]
