@@ -1,4 +1,4 @@
-# 1.0.7923.17557
+# 1.0.7958.38382
 
 [CmdletBinding()]
 param( [switch]$completions )
@@ -13,7 +13,7 @@ if ($completions.IsPresent) {
 
     ## CLI completions require Git bash
 
-    $__GIT_HOME="$Env:LOCALAPPDATA\programs\git\bin"
+    $__GIT_HOME=Join-Path -Path (Split-Path (Split-Path -Path (Get-Command "git").Source)) -ChildPath "bin"
     $__GIT_HOME | Add-DirectoryToPath -Prepend
 
     Function Has-Module {

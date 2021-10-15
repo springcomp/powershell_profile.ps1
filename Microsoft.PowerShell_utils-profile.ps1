@@ -1,4 +1,4 @@
-# 1.0.7950.32997
+# 1.0.7958.38331
 
 Function c {
     [CmdletBinding()]
@@ -67,42 +67,5 @@ Function rmf {
             -EA SilentlyContinue
     }
 }
-Function Search-Item {
-    [CmdletBinding()]
-    param(
-        [Parameter(Position = 0)]
-        [Alias("pattern")]
-        [string]$filter = "*.*",
-
-        [Parameter(Position = 1, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
-        [Alias("FullName")]
-        [Alias("PSPath")]
-        [string]$path = $PWD
-
-    )
-
-    PROCESS {
-
-        Write-Host "Searching in $path"
-
-        Get-ChildItem -Path $path -Recurse -Filter $filter -EA SilentlyContinue | ForEach-Object {
-            Write-Output $_.FullName
-        }
-    }
-}
-
-Set-Alias -Name search -Value Search-Item
 Function servicebus { & 'C:\Portable Apps\ServiceBus Explorer\ServiceBusExplorer.exe' }
 Set-Alias -Name sbex -Value servicebus
-
-Function Upgrade-PowerShell {
-    $has = (Get-Process -Name "pwsh" -EA SilentlyContinue | Select-Object -First 1)
-    if (-not $has) {
-        Remove-Item -Path "$Env:LOCALAPPDATA\Microsoft\powershell-daily" -Recurse -Force -EA SilentlyContinue
-        Invoke-Expression "& { $(Invoke-RestMethod 'https://aka.ms/install-powershell.ps1') } -daily"
-    }
-    else {
-        Write-Host "pwsh.exe is already running. Please, call all PowerShell Core sessions, including Visual Studio Code integrated terminal sessions." -ForegroundColor Yellow
-    }
-}
-Set-Alias -Name update -Value Upgrade-PowerShell

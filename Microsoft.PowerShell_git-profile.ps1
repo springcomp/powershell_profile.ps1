@@ -1,9 +1,8 @@
-# 1.0.7931.32339
+# 1.0.7958.38382
 
 [CmdletBinding()]
 param( [switch]$completions )
 
-$__GIT_HOME=Join-Path -Path (Split-Path (Split-Path -Path (Get-Command "git").Source)) -ChildPath "bin"
 
 if ($completions.IsPresent) {
 
@@ -11,6 +10,7 @@ if ($completions.IsPresent) {
 
     ## CLI completions require Git bash
 
+    $__GIT_HOME=Join-Path -Path (Split-Path (Split-Path -Path (Get-Command "git").Source)) -ChildPath "bin"
     $__GIT_HOME | Add-DirectoryToPath -Prepend
 
     Function Has-Module {
