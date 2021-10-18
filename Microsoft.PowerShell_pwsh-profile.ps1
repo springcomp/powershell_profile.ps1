@@ -1,4 +1,4 @@
-# 1.0.7960.16640
+# 1.0.7961.32481
 
 ## taken from: https://raw.githubusercontent.com/brettmillerb/Toolbox/master/Public/Get-CommandInfo.ps1
 
@@ -127,7 +127,7 @@ Function Get-Syntax {
         }
     }
 }
-Get-Item -Path function:\help | Remove-Item
+Get-Item -Path function:\help -EA SilentlyContinue | Remove-Item
 Set-Alias -Name help -Value Get-Syntax
 
 Function Search-Item {
