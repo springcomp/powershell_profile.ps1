@@ -1,4 +1,4 @@
-# 1.0.7958.38331
+# 1.0.7965.13927
 
 Function c {
     [CmdletBinding()]
@@ -67,5 +67,9 @@ Function rmf {
             -EA SilentlyContinue
     }
 }
-Function servicebus { & 'C:\Portable Apps\ServiceBus Explorer\ServiceBusExplorer.exe' }
+Function servicebus {
+    Push-Location -Path $Env:TEMP\
+    & 'C:\Portable Apps\ServiceBus Explorer\ServiceBusExplorer.exe'
+    Pop-Location
+}
 Set-Alias -Name sbex -Value servicebus
