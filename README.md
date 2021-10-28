@@ -73,4 +73,4 @@ Starting from version 1.0.7945, all functions from the main profile script have 
 |`Get-ProfileVersion`|Returns the profile version number. Use `-remote` to return the version number of the corresponding remote script in this GitHub repository.|
 |`Install-Profile`|Downloads the specified profile and registers its loading in the `Microsoft.PowerShell_profiles-profile.ps1` script.|
 |`Load-Profile`|Loads a named profile. See `Microsof.PowerShell_profiles-profile.ps1`.|
-|`Update-Profile`|Replaces the specified local profile by the content from the corresponding remote profile script.|
+|`Update-Profile`|Replaces the specified local profile by the content from the corresponding remote profile script. Supports a `-all` flag to update all profiles in one fell swoop.|
