@@ -49,7 +49,7 @@ Loading a profile actually executes the Powershell commands found in the corresp
 
 Because this takes a bit of time, a cached version of the resulting commands is stored in the `$Env:TEMP\PowerShell_profiles` folder. Those are the scripts that are actually run every time you open a new PowerShell session.
 
-Because I sometimes update the default profile or any other additional profile script, a _check for update_ mechanism has been built into the loading. Each additional profile may optionally contain a first line comment containing a version number. When loading a profile, the version number is checked against that of the corresponding script on this GitHub repository. If updated is needed, a warning is displayed to the user so that he or she can run a command to update the script.
+Because I sometimes update the default profile or any other additional profile script, a _check for update_ mechanism has been built into the loading. Each additional profile may optionally contain a first line comment containing a version number. When loading a profile, the version number is checked against that of the corresponding script on this GitHub repository. If update is needed, a warning is displayed to the user so that they can run a command to update the script.
 
 ## Profiles Cmdlet
 
