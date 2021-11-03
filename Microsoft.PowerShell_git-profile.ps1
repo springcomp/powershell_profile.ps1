@@ -1,4 +1,4 @@
-# 1.0.7971.14049
+# 1.0.7977.11799
 
 [CmdletBinding()]
 param( [switch]$completions )
@@ -141,4 +141,36 @@ Function reset {
     PROCESS {
         git checkout HEAD -- $path
     }
+}
+Function undo_redo {
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 0)]
+        [Alias("FullName")]
+        [string]$path,
+        [string]$comment = "undo"
+    )
+    PROCESS {
+        git checkout HEAD^1 -- "$path"
+        git add $path
+        git commit -m "$($comment): $($path)"
+    }
+}
+Function undo {
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 0)]
+        [Alias("FullName")]
+        [string]$path
+    )
+    PROCESS { undo_redo -path $path }
+}
+Function redo {
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 0)]
+        [Alias("FullName")]
+        [string]$path
+    )
+    PROCESS { undo_redo -path $path -comment "redo" }
 }
