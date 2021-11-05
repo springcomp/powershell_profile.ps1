@@ -1,4 +1,4 @@
-# 1.0.7936.15588
+# 1.0.7979.15190
 
 [CmdletBinding()]
 param( [switch] $completions )
@@ -21,7 +21,7 @@ if ($completions.IsPresent) {
 }
 
 $Env:PROJECT_DIRECTORY = Join-Path -Path ([IO.Path]::GetPathRoot($Env:USERPROFILE)) -ChildPath "Projects"
-Function me { Set-Location ([IO.Path]::Combine($Env:PROJECT_DIRECTORY, "springcomp")) }
+Function me { Push-Location ([IO.Path]::Combine($Env:PROJECT_DIRECTORY, "springcomp")) }
 Function pro { Set-Location $Env:PROJECT_DIRECTORY }
 Function run-tests {
     param([string]$pattern = "*Tests.csproj")
@@ -30,7 +30,10 @@ Function run-tests {
 Function vs {
     [CmdletBinding()]
     param(
+        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [Alias("Solution")]
+        [Alias("Fullname")]
+        [Alias("PSPath")]
         [string]$path = $null
     )
 
@@ -50,6 +53,39 @@ Function vs {
         else {
             Write-Host "Launching Visual Studio"
             & devenv.exe $args 
+        }
+    }
+}
+Function vs2k22 {
+    [CmdletBinding()]
+    param(
+        [Alias("Solution")]
+        [string]$path = $null
+    )
+
+    BEGIN {
+        $vs = "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE\devenv.exe" 
+    }
+
+    PROCESS {
+
+        if (-not $path) {
+            $solution = Get-ChildItem -Path $PWD -Filter "*.sln" | Select-Object -First 1
+        } else {
+            $solution = Get-Item -Path $path
+        }
+
+        Write-Host $solution
+
+        if ($solution) { & $vs $solution.FullName }
+        else {
+            $project = Get-ChildItem -Path $PWD -Filter "*.csproj" | Select-Object -First 1
+            Write-Host $project
+            if ($project) { & $vs $project.FullName }
+            else {
+                Write-Host "Launching Visual Studio 2022 Preview"
+                & $vs $args 
+            }
         }
     }
 }
