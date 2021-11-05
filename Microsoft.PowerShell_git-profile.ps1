@@ -1,4 +1,4 @@
-# 1.0.7977.11799
+# 1.0.7979.15913
 
 [CmdletBinding()]
 param( [switch]$completions )
@@ -42,6 +42,7 @@ if ($completions.IsPresent) {
 
 Function add { git add $args }
 Function amend { git commit --amend $args }
+Function append { git commit --amend --no-edit $args }
 Function clone { git clone --recurse-submodules $args }
 Function commit { git commit $args }
 Function feature {
