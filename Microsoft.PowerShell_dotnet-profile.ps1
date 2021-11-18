@@ -1,11 +1,11 @@
-# 1.0.7979.15190
+# 1.0.7992.37994
 
 [CmdletBinding()]
 param( [switch] $completions )
 
 "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE\Extensions\Microsoft\Azure Storage Emulator", `
-"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE", `
-    "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin", `
+    "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE", `
+    "C:\Program Files\Microsoft Visual Studio\2022\Preview\MSBuild\Current\Bin\amd64", `
     "C:\Portable Apps\IlSpy" | Add-DirectoryToPath
 
 if ($completions.IsPresent) {
@@ -54,39 +54,6 @@ Function vs {
         else {
             Write-Host "Launching Visual Studio"
             & devenv.exe $args 
-        }
-    }
-}
-Function vs2k22 {
-    [CmdletBinding()]
-    param(
-        [Alias("Solution")]
-        [string]$path = $null
-    )
-
-    BEGIN {
-        $vs = "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE\devenv.exe" 
-    }
-
-    PROCESS {
-
-        if (-not $path) {
-            $solution = Get-ChildItem -Path $PWD -Filter "*.sln" | Select-Object -First 1
-        } else {
-            $solution = Get-Item -Path $path
-        }
-
-        Write-Host $solution
-
-        if ($solution) { & $vs $solution.FullName }
-        else {
-            $project = Get-ChildItem -Path $PWD -Filter "*.csproj" | Select-Object -First 1
-            Write-Host $project
-            if ($project) { & $vs $project.FullName }
-            else {
-                Write-Host "Launching Visual Studio 2022 Preview"
-                & $vs $args 
-            }
         }
     }
 }
