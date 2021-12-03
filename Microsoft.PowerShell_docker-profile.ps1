@@ -1,4 +1,4 @@
-# 1.0.7958.38382
+# 1.0.8007.19673
 
 [CmdletBinding()]
 param( [switch]$completions )
@@ -49,6 +49,8 @@ if ($completions.IsPresent) {
         Register-BashArgumentCompleter helm "$completionsPath/helm.sh"
     }
 }
+
+Function compose { docker compose $args }
 
 Function tf-init {
     terraform init `
