@@ -1,4 +1,4 @@
-# 1.0.7961.32481
+# 1.0.8014.20143
 
 ## taken from: https://raw.githubusercontent.com/brettmillerb/Toolbox/master/Public/Get-CommandInfo.ps1
 
@@ -232,6 +232,16 @@ Function Show-Calendar {
     $line
 }
 Set-Alias -Name cal -Value Show-Calendar -Force
+
+Function Test-Command {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string] $command
+    )
+    Get-Command -Name $command -ErrorAction Ignore
+}
+Set-Alias -Name tcm -Value Test-Command
 
 Function Upgrade-PowerShell {
     $has = (Get-Process -Name "pwsh" -EA SilentlyContinue | Select-Object -First 1)

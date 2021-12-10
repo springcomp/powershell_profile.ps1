@@ -1,4 +1,6 @@
-# 1.0.7965.13927
+# 1.0.8014.20291
+
+if ($null -eq (Test-Command "clipp")) { Function clipp { . "CLIP.EXE" $args } }
 
 Function c {
     [CmdletBinding()]
