@@ -1,6 +1,27 @@
-# 1.0.8014.20291
+# 1.0.8014.21663
 
-if ($null -eq (Test-Command "clipp")) { Function clipp { . "CLIP.EXE" $args } }
+if ($null -eq (Test-Command "clipp")) {
+    Function clipp {
+        [CmdletBinding()]
+        param(
+            [Parameter(ValueFromPipeline = $true)]
+            [string]$text = $null,
+
+            [Parameter(Mandatory = $false, Position = 0)]
+            [Alias("PSPath")]
+            [Alias("FullName")]
+            [string]$path = $null
+        )
+
+        PROCESS {
+            if ((-not $text) -and (-not $path)) { . "CLIP.EXE" }
+            else {
+                if ([bool] $path) { Get-Content -Path $path | . "CLIP.EXE" }
+                if ([bool] $text) { $text | . "CLIP.EXE" }
+            }
+        }
+    }
+}
 
 Function c {
     [CmdletBinding()]
