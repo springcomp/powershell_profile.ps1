@@ -20,7 +20,11 @@ Function Get-ProfilePath {
         $pattern = (Split-Path $profile -Leaf)
     
         $template = "Microsoft.PowerShell_%{NAME}%profile.ps1"
-        $address = "https://raw.githubusercontent.com/springcomp/powershell_profile.ps1/master/"
+        $DEFAULT_REMOTE_REPOSITORY = "https://raw.githubusercontent.com/springcomp/powershell_profile.ps1/master/"
+        $address = $Env:PWSH_PROFILES_REMOTE_REPOSITORY
+        if (-not $address) {
+            $address = $DEFAULT_REMOTE_REPOSITORY
+        }
     }
 
     PROCESS {

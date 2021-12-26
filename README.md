@@ -14,6 +14,8 @@ Then open a PowerShell prompt or reload your profile.
 Install-Module -Name Pwsh-Profile -Repository PSGallery -Scope CurrentUser -Force
 ```
 
+**Notice**: If you want to clone this repository and have you own versions of the default profiles, please set the `$Env:PWSH_PROFILES_REMOTE_REPOSITORY` environment variable to point to the root path of the raw scripts in your repository. Please, see the documentation for the CmdLets available below for more details.
+
 ## Customize your prompt with Oh-My-Posh
 
 ```pwsh
@@ -76,3 +78,5 @@ Starting from version 1.0.7945, all functions from the main profile script have 
 |`Install-Profile`|Downloads the specified profile and registers its loading in the `Microsoft.PowerShell_profiles-profile.ps1` script.|
 |`Load-Profile`|Loads a named profile. See `Microsof.PowerShell_profiles-profile.ps1`.|
 |`Update-Profile`|Replaces the specified local profile by the content from the corresponding remote profile script. Supports a `-all` flag to update all profiles in one fell swoop.|
+
+To customize the location of the remote Powershell Profiles repository, you can set the `$Env:PWSH_PROFILES_REMOTE_REPOSITORY` environment variable to the root path of raw scripts files in your repository. If the variable is not set, the default value is the string `https://raw.githubusercontent.com/springcomp/powershell_profile.ps1/master/`.

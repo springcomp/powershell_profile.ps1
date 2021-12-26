@@ -1,4 +1,4 @@
-# 1.0.7945.36516
+# 1.0.8030.24604
 
 ## $Env:PATH management
 Function Add-DirectoryToPath {
@@ -118,6 +118,19 @@ if (-not (Get-Module -Name Pwsh-Profile -ListAvailable)) {
     Write-Host "  Install-Module -Name Pwsh-Profile -Repository PSGallery -Scope CurrentUser -Force" -ForegroundColor DarkGray
 
     return
+} else {
+
+    $update8030 = Join-Path -Path (Get-CachedPowerShellProfileFolder) -ChildPath "pwsh_profile_8030"
+    if (-not (Test-Path $update8030)){
+        $online = Find-Module -Name Pwsh-Profile -Repository PSGallery
+        $current = Get-module -Name Pwsh-Profile -ListAvailable
+        if ($online.Version -gt $current.Version) {
+            Write-Host "Required 'Pwsh-Profile' module has updates." -ForegroundColor Yellow
+            Write-Host "Please, update this module using the following command:" -ForegroundColor Yellow
+            Write-Host "  Update-Module -Name Pwsh-Profile -Force" -ForegroundColor DarkGray
+        }
+        Set-Content -Path $update8030 -Value $null
+    }
 }
 
 CheckFor-ProfileUpdate | Out-Null

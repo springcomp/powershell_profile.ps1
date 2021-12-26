@@ -1,6 +1,6 @@
 @{
     RootModule = 'Load-Profile.psm1'
-    ModuleVersion = '1.0.7947'
+    ModuleVersion = '1.0.8030'
     GUID = '3b9dc291-4855-4402-8721-ff45cacd0a10'
     Author = 'SpringComp'
     Description = 'Manage extensible PowerShell profiles using simple CmdLets'

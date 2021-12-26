@@ -17,7 +17,8 @@ Function Load-Profile {
             ## Using [IO.File]::ReadAllText() instead of Get-Content -Raw for performance purposes
 
             $content = [IO.File]::ReadAllText($path)
-            $content = $content -replace "(?<!\-)[Ff]unction\ +([A-Za-z]+)", 'Function global:$1'
+            $content = $content -replace "(?<!\-)[Ff]unction\ +([_A-Za-z]+)", 'Function global:$1'
+            $content = $content -replace "(?<!\-)[Ff]ilter\ +([_A-Za-z]+)", 'Filter global:$1'
             $content = $content -replace "[Ss][Ee][Tt]\-[Aa][Ll][Ii][Aa][Ss]\ +(.*)", 'Set-Alias -Scope Global $1'
 
             Write-Output $content
