@@ -51,6 +51,8 @@ Because this takes a bit of time, a cached version of the resulting commands is 
 
 Because I sometimes update the default profile or any other additional profile script, a _check for update_ mechanism has been built into the loading. Each additional profile may optionally contain a first line comment containing a version number. When loading a profile, the version number is checked against that of the corresponding script on this GitHub repository. If update is needed, a warning is displayed to the user so that they can run a command to update the script.
 
+By default, a check for update is performed every day. Set the `$Env:CHECK_FOR_PWSH_PROFILE_UPDATES_FREQUENCY_IN_DAYS` environment variable to a different value if you need to check for update at a different rate.
+
 ## Profiles Cmdlet
 
 The default `Microsoft.PowerShell_profile.ps1` script imports the following Cmdlets into the current session:
