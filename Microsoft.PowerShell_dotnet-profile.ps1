@@ -1,4 +1,4 @@
-# 1.0.7992.37994
+# 1.0.8036.30867
 
 [CmdletBinding()]
 param( [switch] $completions )
@@ -6,7 +6,8 @@ param( [switch] $completions )
 "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE\Extensions\Microsoft\Azure Storage Emulator", `
     "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE", `
     "C:\Program Files\Microsoft Visual Studio\2022\Preview\MSBuild\Current\Bin\amd64", `
-    "C:\Portable Apps\IlSpy" | Add-DirectoryToPath
+    "C:\Portable Apps\IlSpy", `
+    "C:\Program Files (x86)\GitHub CLI" | Add-DirectoryToPath
 
 if ($completions.IsPresent) {
 
