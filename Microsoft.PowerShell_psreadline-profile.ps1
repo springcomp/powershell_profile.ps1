@@ -1,4 +1,4 @@
-# 1.0.7896.18224
+# 1.0.8053.38379
 
 Set-PSReadLineOption -EditMode Vi
 
@@ -16,6 +16,19 @@ if ($psReadLineVersion -ge 210) {
 
     Set-PSReadLineOption -PredictionSource History
     Set-PSReadLineKeyHandler -ViMode Insert -Chord "Ctrl+)" -Function AcceptNextSuggestionWord
+
+    $HandleViModeChanged = [scriptblock] {
+        if ($args[0] -eq 'Command') {
+            # Set the cursor to a blinking block.
+            Write-Host -NoNewLine "`e[1 q"
+        }
+        else {
+            # Set the cursor to a blinking line.
+            Write-Host -NoNewLine "`e[5 q"
+        }
+    }
+
+    Set-PSReadLineOption -ViModeIndicator Script -ViModeChangeHandler $HandleViModeChanged
 }
 
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
