@@ -1,4 +1,4 @@
-# 1.0.8065.29707
+# 1.0.8065.29775
 
 [CmdletBinding()]
 param( [switch]$completions )
@@ -12,6 +12,8 @@ Set-Alias -Name docker -Value podman
 Function Start-DockerDesktop {
     Start-Job { wsl -d podman podman system service --time=0 tcp:localhost:2375 }
 }
+Set-Alias dockerd -Value Start-DockerDesktop
+Set-Alias -Name Start-Docker -Value Start-DockerDesktop
 Function Stop-DockerDesktop {
     $job = Get-Job |? { $_.Command.Trim().StartsWith("wsl -d podman podman system service") }
     if ($job) {
@@ -20,6 +22,8 @@ Function Stop-DockerDesktop {
         Remove-Job $job
     }
 }
+Set-Alias -Name Stop-Docker -Value Stop-DockerDesktop
+Set-Alias -Name rmdocker -Value Stop-DockerDesktop
 
 if ($completions.IsPresent) {
 
