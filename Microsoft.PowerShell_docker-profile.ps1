@@ -1,29 +1,34 @@
-# 1.0.8065.29775
+# 1.0.8066.20885
 
 [CmdletBinding()]
 param( [switch]$completions )
 
-"C:\Portable Apps\Helm", `
-    "C:\Program Files (x86)\RedHat\Podman\"
-    | Add-DirectoryToPath
+"C:\Portable Apps\Helm" `
+| Add-DirectoryToPath
 
-Set-Alias -Name docker -Value podman
+$Env:DOCKER_HOST="tcp://localhost:2375"
 
-Function Start-DockerDesktop {
-    Start-Job { wsl -d podman podman system service --time=0 tcp:localhost:2375 }
+Function Start-Docker {
+    $ip = (wsl -d ubuntu-docker sh -c "hostname -I").Split(" ")[0]
+    Write-Host "netsh interface portproxy add v4tov4 listenport=2375 connectport=2375 connectaddress=$ip"
+    $arguments = "interface portproxy add v4tov4 listenport=2375 connectport=2375 connectaddress=$ip" 
+    Start-Process netsh -ArgumentList $arguments -Verb RunAs
+    Start-Job { param([string]$ip) wsl -d ubuntu-docker sh -c "sudo dockerd -H tcp://$ip" } -ArgumentList $ip | Out-Null
 }
-Set-Alias dockerd -Value Start-DockerDesktop
-Set-Alias -Name Start-Docker -Value Start-DockerDesktop
-Function Stop-DockerDesktop {
-    $job = Get-Job |? { $_.Command.Trim().StartsWith("wsl -d podman podman system service") }
-    if ($job) {
-        Stop-Job $job
-        Wait-Job $job
-        Remove-Job $job
-    }
-}
-Set-Alias -Name Stop-Docker -Value Stop-DockerDesktop
-Set-Alias -Name rmdocker -Value Stop-DockerDesktop
+Set-Alias -Name dockerd -Value Start-Docker
+
+Function Stop-Docker { wsl --terminate ubuntu-docker }
+Set-Alias -Name rmdocker -Value Stop-Docker
+
+Function Start-Kubernetes { wsl -d ubuntu-minikube sh -c "/home/kube/minikube.sh start --embed-certs" }
+Set-Alias -Name k8s -Value Start-Kubernetes
+
+Function Stop-Kubernetes { wsl --terminate ubuntu-minikube }
+Set-Alias -Name rmkube -Value Stop-Kubernetes
+Set-Alias -Name rmk8s -Value Stop-Kubernetes
+
+Function kontrol { Start-Job { kubectl confluent dashboard controlcenter --namespace confluent } }
+Function minikube { wsl -d ubuntu-minikube sh -c "/home/kube/minikube.sh $args" }
 
 if ($completions.IsPresent) {
 
