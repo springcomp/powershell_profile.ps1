@@ -1,4 +1,5 @@
-# 1.0.8224.18523
+# 1.0.8398.17892
+
 Function Update-PoshTheme {
 
   $address = "https://raw.githubusercontent.com/springcomp/config-files/master/.poshthemes/oh-my-posh.json"
@@ -11,16 +12,24 @@ Function Update-PoshTheme {
 
 Function Upgrade-TerminalIcons {
   
+  if ($PSVersionTable.Platform -ne "Win32NT") { return }
+
   if (Get-Module Terminal-Icons -ListAvailable) { Update-Module Terminal-Icons -Force }
   else { Install-Module Terminal-Icons -Force }
 
 }
 
-# Oh My Posh should be installed using WinGet
+# Oh My Posh should be installed using WinGet on Windows
 # . winget install JanDeDobbeleer.OhMyPosh -s winget
 # Use the following link for bootstrap:
 # https://github.com/springcomp/my-box/blob/e3a2431e448fbf7acad2fe6969a448d00bbedf11/bootstrap/pwsh-core.ps1#L83-L88 
 
-. oh-my-posh.exe init pwsh --config "~/.poshthemes/oh-my-posh.json" | Invoke-Expression
+# Oh My Posh should be installed using Homebrew or manually on Linux
+# See instructions at:
+# https://ohmyposh.dev/docs/installation/linux
 
-Import-Module -Name Terminal-Icons
+. oh-my-posh init pwsh --config "~/.poshthemes/oh-my-posh.json" | Invoke-Expression
+
+if ($PSVersionTable.Platform -eq "Win32NT") {
+  Import-Module -Name Terminal-Icons
+}
