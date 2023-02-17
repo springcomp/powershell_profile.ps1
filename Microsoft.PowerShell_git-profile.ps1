@@ -1,4 +1,4 @@
-# 1.0.7979.15913
+# 1.0.8448.16426
 
 [CmdletBinding()]
 param( [switch]$completions )
@@ -43,7 +43,25 @@ if ($completions.IsPresent) {
 Function add { git add $args }
 Function amend { git commit --amend $args }
 Function append { git commit --amend --no-edit $args }
-Function clone { git clone --recurse-submodules $args }
+Function clone {
+    [CmdletBinding()]
+    param(
+        [switch]$personal,
+        [Parameter(ValueFromRemainingArguments = $true)]$remainingArgs
+    )
+    $path = ""
+    & git clone --progress --recurse-submodules $remainingArgs 2>&1 |% {
+        if ($_ -match "^Cloning into '(?<folder>[^']+)'"){ $path = $matches["folder"] }
+        if ($_ -match "[1-9]?[1-9]%") {}
+        else { Write-Host $_ }
+    }
+    if ($personal.IsPresent){
+        Push-Location $path
+        git config --local user.email springcomp@users.noreply.github.com
+        git config --local user.name Springcomp
+        Pop-Location
+    }
+}
 Function commit { git commit $args }
 Function feature {
     param(
