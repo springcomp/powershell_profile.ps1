@@ -1,4 +1,4 @@
-# 1.0.8014.21663
+# 1.0.8467.24195
 
 if ($null -eq (Test-Command "clipp")) {
     Function clipp {
@@ -34,7 +34,10 @@ Function c {
     . code $path
 }
 Function ccv { Get-CurrentVersion | clipp }
-Function cguid { [Guid]::NewGuid().guid | clipp }
+Function cguid {
+    param([string]$facet = "d")
+    [Guid]::NewGuid().ToString($facet) | clipp
+}
 Function cwd { $PWD.Path | clipp }
 Function csp {
     [CmdletBinding()]
@@ -43,6 +46,73 @@ Function csp {
         [string]$path = $profile
     )
     code (split-path -path "$path")
+}
+
+Function d2u {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Alias("Fullname")]
+        [string]$path
+    )
+
+    PROCESS {
+
+        $arr = Get-Content -Path $path
+        Set-Content `
+            -Path $path `
+            -Encoding UTF8 `
+            -Value (
+            [String]::Join("`n", $arr)
+        )
+    }
+}
+Function trunc {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Alias("Fullname")]
+        [string]$path
+    )
+    	
+    PROCESS {
+        $arr = Get-Content -Path $path
+
+        $lastLine = $arr.Length
+        $stop = $false
+        for ($index = $arr.Length - 1; $index -ge 0; $index = $index - 1) {
+            $line = $arr[$index].Trim()
+            if ($line.Length -ne 0) { $stop = $true }
+            if (($line.Length -eq 0) -and (-not $stop)) {
+                $lastLine = $index
+            }
+        }
+        $arr = $arr | Select-Object -First $lastLine
+
+        Set-Content `
+            -Path $path `
+            -Encoding UTF8 `
+            -Value ([String]::Join([Environment]::NewLine, $arr))
+    }
+}
+Function u2d {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Alias("Fullname")]
+        [string]$path
+    )
+
+    PROCESS {
+
+        $arr = Get-Content -Path $path
+        Set-Content `
+            -Path $path `
+            -Encoding UTF8 `
+            -Value (
+            [String]::Join("`r`n", $arr)
+        )
+    }
 }
 Function esp { explorer (split-path $args) }
 Function ewd {
