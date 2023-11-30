@@ -1,4 +1,4 @@
-# 1.0.8448.16426
+# 1.0.8734.26968
 
 [CmdletBinding()]
 param( [switch]$completions )
@@ -47,6 +47,7 @@ Function clone {
     [CmdletBinding()]
     param(
         [switch]$personal,
+        [switch]$noSetLocation,
         [Parameter(ValueFromRemainingArguments = $true)]$remainingArgs
     )
     $path = ""
@@ -60,6 +61,9 @@ Function clone {
         git config --local user.email springcomp@users.noreply.github.com
         git config --local user.name Springcomp
         Pop-Location
+    }
+    if (-not $noSetLocation.IsPresent){
+        Set-Location $path
     }
 }
 Function commit { git commit $args }
