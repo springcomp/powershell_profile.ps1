@@ -1,6 +1,7 @@
-# 1.0.8949.21159
+# 1.0.8949.21274
 
-"C:\Portable Apps\Terraform" `
+$Env:__TERRAFORM_HOME = "C:\Portable Apps\Terraform"
+$Env:__TERRAFORM_HOME `
 	| Add-DirectoryToPath
 
 Function tf-init {
@@ -47,7 +48,9 @@ Function tvm {
 
 	BEGIN {
 
-		$HOME_DIR = $PSScriptRoot
+		$HOME_DIR = $Env:__TERRAFORM_HOME
+
+		Write-Host $HOME_DIR
 
 		Function Get-TerraformVersion {
 			$terraform_exe = "$HOME_DIR/terraform.exe"
