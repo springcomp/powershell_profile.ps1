@@ -50,8 +50,6 @@ Function tvm {
 
 		$HOME_DIR = $Env:__TERRAFORM_HOME
 
-		Write-Host $HOME_DIR
-
 		Function Get-TerraformVersion {
 			$terraform_exe = "$HOME_DIR/terraform.exe"
 			if (Test-Path $terraform_exe) {
