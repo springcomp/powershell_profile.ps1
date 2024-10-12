@@ -1,4 +1,4 @@
-# 1.0.8734.26968
+# 1.0.9051.18226
 
 [CmdletBinding()]
 param( [switch]$completions )
@@ -102,6 +102,7 @@ Function feature-finish {
 Function fetch { git fetch --all -p $args }
 Function g { git status }
 Function lol { git log --oneline --decorate --graph $args }
+Function pick { git cherry-pick $args }
 Function pull { git fetch -p; git merge --ff-only }
 Function push { git push $args }
 
