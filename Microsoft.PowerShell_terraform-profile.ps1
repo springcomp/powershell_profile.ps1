@@ -125,7 +125,7 @@ Function tvm {
 				-Path $Env:TEMP\tf.zip `
 				-DestinationPath $Env:TEMP\tf_
 
-			Copy-Item `
+			Move-Item `
 				-Path $Env:TEMP\tf_\terraform.exe `
 				-Destination "$($HOME_DIR)\terraform-$($version).exe" `
 				-Force
@@ -160,10 +160,10 @@ Function tvm {
 			$localVersions = Get-LocalVersion -Trim
 			if ($localVersions.Contains($version)) {
 				Remove-Item -Path "$HOME_DIR/terraform.exe" -EA SilentlyContinue
-				Copy-Item `
-					-Path "$HOME_DIR/terraform-$($version).exe" `
-					-Destination "$HOME_DIR/terraform.exe" `
-					-Force
+				New-Item `
+					-ItemType HardLink `
+					-Path "$HOME_DIR/terraform.exe" `
+					-Target "$HOME_DIR/terraform-$($version).exe"
 			}
 		}
 	}
