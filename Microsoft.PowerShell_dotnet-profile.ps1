@@ -3,11 +3,14 @@
 [CmdletBinding()]
 param( [switch] $completions )
 
-"C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE\Extensions\Microsoft\Azure Storage Emulator", `
-    "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE", `
-    "C:\Program Files\Microsoft Visual Studio\2022\Preview\MSBuild\Current\Bin\amd64", `
+$VS_DIR__="C:\Program Files\Microsoft Visual Studio\2022"
+
+"$($VS_DIR__)\Community\MSBuild\Current\Bin\amd64", `
+    "$($VS_DIR__)\Professional\Common7\IDE\Extensions\Microsoft\Azure Storage Emulator", `
+    "$($VS_DIR__)\Professional\Common7\IDE", `
+    "$($VS_DIR__)\Professional\MSBuild\Current\Bin\amd64", `
     "C:\Portable Apps\IlSpy", `
-    "C:\Program Files (x86)\GitHub CLI" | Add-DirectoryToPath
+    "C:\Program Files (x86)\GitHub CLI" |? { Test-Path $_ } | Add-DirectoryToPath
 
 if ($completions.IsPresent) {
 
@@ -26,8 +29,76 @@ $Env:PROJECT_DIRECTORY = Join-Path -Path ([IO.Path]::GetPathRoot($Env:USERPROFIL
 Function me { Push-Location ([IO.Path]::Combine($Env:PROJECT_DIRECTORY, "springcomp")) }
 Function pro { Set-Location $Env:PROJECT_DIRECTORY }
 Function run-tests {
-    param([string]$pattern = "*Tests.csproj")
-    Get-ChildItem -Path $PATH -Recurse -Filter $pattern | % { dotnet test $_.FullName }
+    [CmdletBinding()]
+    param(
+        [string]$pattern = "*Tests.csproj",
+        [Alias("html")]
+        [switch]$visual
+    )
+    Get-ChildItem -Path $PATH -Recurse -Filter $pattern | % {
+        run-test -Path $_.FullName `
+            -Html:$visual
+    }
+}
+Function run-test {
+    [CmdletBinding()]
+    param(
+        [string]$path,
+        [Alias("html")]
+        [switch]$visual
+    )
+
+    $projectDir = Split-Path -Path $path
+    $resultsDir = Join-Path -Path $projectDir -ChildPath "TestResults"
+
+    dotnet test $path `
+    	--collect:"Code Coverage" `
+    	--results-directory:"$resultsDir"
+
+    # find test results
+    if (-not (Test-Path -Path $resultsDir)) {
+    	Write-Host "Missing test results" -ForegroundColor Red
+    	return 
+    }
+    $collectedDir = (Get-ChildItem -Path $resultsDir |`
+    	Sort-Object -Property LastWriteTime |`
+    	Select-Object -First 1).FullName
+
+    if (-not $collectedDir) {
+    	Write-Host "Missing collected code coverage" -ForegroundColor Red
+    	return 
+    }
+
+    $coverage = Get-ChildItem -Path $collectedDir -Filter "*.coverage" |`
+    	Select-Object -First 1
+
+    if (-not $coverage) {
+    	Write-Host "Missing collected code coverage output" -ForegroundColor Red
+    	return 
+    }
+
+    dotnet coverage merge $coverage `
+    	--output $collectedDir/output.xml `
+    	--output-format xml `
+    	--disable-console-output
+
+    reportgenerator `
+    	-reports:"$collectedDir/output.xml" `
+    	-targetdir:"$collectedDir/coveragereport" `
+    	-reporttypes:Html `
+    	-verbosity:Error
+
+    if ($visual.IsPresent) {
+    	start "$collectedDir/coveragereport/Index.html"
+    }
+
+    reportgenerator `
+    	-reports:"$collectedDir/output.xml" `
+    	-targetdir:"$collectedDir/coveragereport" `
+    	-reporttypes:TextSummary `
+    	-verbosity:Off
+
+    Write-Host (Get-Content -Raw -Path "$collectedDir/coveragereport/Summary.txt")
 }
 Function vs {
     [CmdletBinding()]
