@@ -1,4 +1,4 @@
-# 1.0.8036.30867
+# 1.0.9538.17986
 
 [CmdletBinding()]
 param( [switch] $completions )
@@ -111,7 +111,7 @@ Function vs {
     )
 
     if (-not $path) {
-        $solution = Get-ChildItem -Path $PWD -Filter "*.sln" | Select-Object -First 1
+        $solution = Get-ChildItem -Path $PWD -Filter "*.sln?" | Select-Object -First 1
     } else {
         $solution = Get-Item -Path $path
     }
