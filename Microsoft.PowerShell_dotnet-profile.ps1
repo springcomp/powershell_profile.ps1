@@ -1,16 +1,17 @@
-# 1.0.9538.17986
+# 1.0.9658.12488
 
 [CmdletBinding()]
 param( [switch] $completions )
 
-$VS_DIR__="C:\Program Files\Microsoft Visual Studio\2022"
+$Env:NUGET_SOURCE="https://pkgs.dev.azure.com/lpl-sources/IPaaS/_packaging/IPaaS_Feed/nuget/v3/index.json"
+
+$VS_DIR__="C:\Program Files\Microsoft Visual Studio\18"
 
 "$($VS_DIR__)\Community\MSBuild\Current\Bin\amd64", `
-    "$($VS_DIR__)\Professional\Common7\IDE\Extensions\Microsoft\Azure Storage Emulator", `
-    "$($VS_DIR__)\Professional\Common7\IDE", `
-    "$($VS_DIR__)\Professional\MSBuild\Current\Bin\amd64", `
-    "C:\Portable Apps\IlSpy", `
-    "C:\Program Files (x86)\GitHub CLI" |? { Test-Path $_ } | Add-DirectoryToPath
+    "$($VS_DIR__)\Community\Common7\IDE\Extensions\Microsoft\Azure Storage Emulator", `
+    "$($VS_DIR__)\Community\Common7\IDE", `
+    "$($VS_DIR__)\Community\MSBuild\Current\Bin\amd64", `
+    "C:\Portable Apps\IlSpy" |? { Test-Path $_ } | Add-DirectoryToPath
 
 if ($completions.IsPresent) {
 
@@ -43,62 +44,116 @@ Function run-tests {
 Function run-test {
     [CmdletBinding()]
     param(
+        [Parameter(ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+        [Alias("PSPath")]
         [string]$path,
         [Alias("html")]
         [switch]$visual
     )
 
-    $projectDir = Split-Path -Path $path
-    $resultsDir = Join-Path -Path $projectDir -ChildPath "TestResults"
+    BEGIN {
 
-    dotnet test $path `
-    	--collect:"Code Coverage" `
-    	--results-directory:"$resultsDir"
+        ## check required dotnet tools
 
-    # find test results
-    if (-not (Test-Path -Path $resultsDir)) {
-    	Write-Host "Missing test results" -ForegroundColor Red
-    	return 
-    }
-    $collectedDir = (Get-ChildItem -Path $resultsDir |`
-    	Sort-Object -Property LastWriteTime |`
-    	Select-Object -First 1).FullName
+        Function Get-DotNetTool {
+            param([switch]$global)
+            $command = "dotnet tool list"
+            if ($global.IsPresent) { $command = $command + " --global" }
+            $command += " --format json"
+            $json = iex $command | ConvertFrom-JSON
+            return $json.data
+        }
 
-    if (-not $collectedDir) {
-    	Write-Host "Missing collected code coverage" -ForegroundColor Red
-    	return 
-    }
+        Function Ensure-DotNetTools {
+            Ensure-DotNetTool -Path $path -PackageId "dotnet-coverage" -PackageVersion "17.14.2"
+            Ensure-DotNetTool -Path $path -PackageId "dotnet-reportgenerator-globaltool" -PackageVersion "5.5.0"
+        }
 
-    $coverage = Get-ChildItem -Path $collectedDir -Filter "*.coverage" |`
-    	Select-Object -First 1
+        Function Ensure-DotNetTool {
+            param([string]$packageId, [string]$packageVersion)
+            $array = Get-DotNetTool -Global |? { $_.packageId -eq $packageId -and $_.version -eq $packageVersion }
+            if ((-not $array) -or ($array.Length -eq 0)) {
+                Write-Verbose "Installing required dotnet tools"
+                $command = "dotnet tool install --global --version `"$packageVersion`" `"$packageId`""
+                iex $command
+            }
+        }
 
-    if (-not $coverage) {
-    	Write-Host "Missing collected code coverage output" -ForegroundColor Red
-    	return 
-    }
-
-    dotnet coverage merge $coverage `
-    	--output $collectedDir/output.xml `
-    	--output-format xml `
-    	--disable-console-output
-
-    reportgenerator `
-    	-reports:"$collectedDir/output.xml" `
-    	-targetdir:"$collectedDir/coveragereport" `
-    	-reporttypes:Html `
-    	-verbosity:Error
-
-    if ($visual.IsPresent) {
-    	start "$collectedDir/coveragereport/Index.html"
+        Ensure-DotNetTools
     }
 
-    reportgenerator `
-    	-reports:"$collectedDir/output.xml" `
-    	-targetdir:"$collectedDir/coveragereport" `
-    	-reporttypes:TextSummary `
-    	-verbosity:Off
+    PROCESS {
 
-    Write-Host (Get-Content -Raw -Path "$collectedDir/coveragereport/Summary.txt")
+        Write-Verbose "Running $($path) tests"
+
+        $path = (Resolve-Path -Path $path).Path
+
+        if ((Get-Item -Path $path).PSIsContainer) {
+            $projectDir = $path
+        } else {
+            $projectDir = Split-Path -Path $path -Parent
+        }
+
+        $resultsDir = Join-Path -Path $projectDir -ChildPath "TestResults"
+
+        Write-Verbose "ProjectDir: $($projectDir)"
+        Write-Verbose "ResultsDir: $($resultsDir)"
+
+        dotnet test $path `
+            --collect:"Code Coverage" `
+            --results-directory:"$resultsDir"
+
+        # find test results
+        if (-not (Test-Path -Path $resultsDir)) {
+            Write-Host "Missing test results" -ForegroundColor Red
+            return 
+        }
+        $collectedDir = (Get-ChildItem -Path $resultsDir |? {
+            (Get-ChildItem $_ | Measure-Object).Count -gt 0
+        } | Sort-Object -Property LastWriteTime -Descending |`
+            Select-Object -First 1).FullName
+
+        Write-Verbose "CollectedDir: $($collectedDir)"
+
+        if (-not $collectedDir) {
+            Write-Host "Missing collected code coverage" -ForegroundColor Red
+            return 
+        }
+
+        $coverage = Get-ChildItem -Path $collectedDir -Filter "*.coverage" |`
+            Select-Object -First 1
+
+        if (-not $coverage) {
+            Write-Host "Missing collected code coverage output" -ForegroundColor Red
+            return 
+        }
+
+        dotnet coverage merge $coverage `
+            --output $collectedDir/output.xml `
+            --output-format xml `
+            --disable-console-output
+
+        reportgenerator `
+            -reports:"$collectedDir/output.xml" `
+            -targetdir:"$collectedDir/coveragereport" `
+            -reporttypes:Html `
+            -verbosity:Error
+
+        if ($visual.IsPresent) {
+            start "$collectedDir/coveragereport/Index.html"
+        }
+
+        reportgenerator `
+            -reports:"$collectedDir/output.xml" `
+            -targetdir:"$collectedDir/coveragereport" `
+            -reporttypes:TextSummary `
+            -verbosity:Off
+
+        Write-Verbose "Code coverage output: '$($collectedDir)/output.xml'"
+        Write-Verbose "Code coverage summary: '$($collectedDir)/coveragereport/Summary.txt'"
+        Write-Verbose "Code coverage report: '$($collectedDir)/coveragereport/Index.html'"
+        Write-Host (Get-Content -Raw -Path "$collectedDir/coveragereport/Summary.txt")
+    }
 }
 Function vs {
     [CmdletBinding()]
