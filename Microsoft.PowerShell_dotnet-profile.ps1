@@ -1,9 +1,9 @@
-# 1.0.9658.12488
+# 1.0.9733.20165
 
 [CmdletBinding()]
 param( [switch] $completions )
 
-$Env:NUGET_SOURCE="https://pkgs.dev.azure.com/lpl-sources/IPaaS/_packaging/IPaaS_Feed/nuget/v3/index.json"
+$Env:NUGET_SOURCE="https://pkgs.dev.azure.com/${Env:ADO_ORG}/${Env:ADO_PROJ}/_packaging/IPaaS_Feed/nuget/v3/index.json"
 
 $VS_DIR__="C:\Program Files\Microsoft Visual Studio\18"
 

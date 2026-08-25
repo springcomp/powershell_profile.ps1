@@ -1,22 +1,15 @@
-## Load required profiles
-
-Load-Profile "modules" -Quiet
 Load-Profile "paths" -Quiet
+Load-Profile "local" -Quiet
 
-## Load usefull profiles
+Load-Profile "pwsh" -Quiet
+Load-Profile "utils" -Quiet
+Load-Profile "bat" -Quiet
+Load-Profile "copilot" -Quiet
+Load-Profile "pi" -Quiet
 
-Load-Profile "b64"
-Load-Profile "dotnet"
-Load-Profile "docker"
-Load-Profile "git"
-Load-Profile "json"
-Load-Profile "local"
 Load-Profile "oh-my-posh"
 Load-Profile "psreadline"
+Load-Profile "dotnet"
+Load-Profile "git"
 Load-Profile "vim"
 
-## SECURITY - SENSITIVE DATA
-
-Load-Profile "secret" -Quiet
-
-## SENSITIVE DATA
